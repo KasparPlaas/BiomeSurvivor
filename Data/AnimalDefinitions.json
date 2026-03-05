@@ -1,0 +1,221 @@
+{
+  "_comment": "Animal Definitions - Wildlife data for Biome Survivor. Each animal maps to AAnimalBase subclass.",
+  "version": "1.0",
+  "animals": [
+    {
+      "AnimalID": "deer",
+      "DisplayName": "White-tailed Deer",
+      "Behavior": "Passive",
+      "Health": 60,
+      "AttackDamage": 0,
+      "WalkSpeed": 200,
+      "RunSpeed": 600,
+      "DetectionRadius": 2500,
+      "FleeDistance": 4000,
+      "AttackRange": 0,
+      "WanderRadius": 3000,
+      "ValidBiomes": ["forest", "mountain", "coast"],
+      "IsNocturnal": false,
+      "LootDrops": [
+        { "ItemID": "raw_meat", "Chance": 1.0, "MinCount": 2, "MaxCount": 4 },
+        { "ItemID": "animal_hide", "Chance": 1.0, "MinCount": 1, "MaxCount": 2 },
+        { "ItemID": "bone", "Chance": 0.8, "MinCount": 1, "MaxCount": 3 }
+      ]
+    },
+    {
+      "AnimalID": "rabbit",
+      "DisplayName": "Wild Rabbit",
+      "Behavior": "Passive",
+      "Health": 15,
+      "AttackDamage": 0,
+      "WalkSpeed": 180,
+      "RunSpeed": 550,
+      "DetectionRadius": 1500,
+      "FleeDistance": 3000,
+      "AttackRange": 0,
+      "WanderRadius": 1500,
+      "ValidBiomes": ["forest", "tundra", "mountain", "coast"],
+      "IsNocturnal": false,
+      "LootDrops": [
+        { "ItemID": "raw_meat", "Chance": 1.0, "MinCount": 1, "MaxCount": 1 },
+        { "ItemID": "animal_hide", "Chance": 0.8, "MinCount": 1, "MaxCount": 1 }
+      ]
+    },
+    {
+      "AnimalID": "wolf",
+      "DisplayName": "Grey Wolf",
+      "Behavior": "Aggressive",
+      "Health": 80,
+      "AttackDamage": 25,
+      "WalkSpeed": 220,
+      "RunSpeed": 650,
+      "DetectionRadius": 3500,
+      "FleeDistance": 500,
+      "AttackRange": 200,
+      "WanderRadius": 4000,
+      "ValidBiomes": ["forest", "tundra", "mountain"],
+      "IsNocturnal": true,
+      "LootDrops": [
+        { "ItemID": "raw_meat", "Chance": 1.0, "MinCount": 2, "MaxCount": 3 },
+        { "ItemID": "animal_hide", "Chance": 1.0, "MinCount": 1, "MaxCount": 2 },
+        { "ItemID": "bone", "Chance": 0.6, "MinCount": 1, "MaxCount": 2 }
+      ]
+    },
+    {
+      "AnimalID": "bear",
+      "DisplayName": "Brown Bear",
+      "Behavior": "Territorial",
+      "Health": 250,
+      "AttackDamage": 50,
+      "WalkSpeed": 180,
+      "RunSpeed": 500,
+      "DetectionRadius": 3000,
+      "FleeDistance": 0,
+      "AttackRange": 250,
+      "WanderRadius": 3000,
+      "ValidBiomes": ["forest", "mountain"],
+      "IsNocturnal": false,
+      "LootDrops": [
+        { "ItemID": "raw_meat", "Chance": 1.0, "MinCount": 4, "MaxCount": 8 },
+        { "ItemID": "animal_hide", "Chance": 1.0, "MinCount": 2, "MaxCount": 4 },
+        { "ItemID": "bone", "Chance": 0.9, "MinCount": 2, "MaxCount": 5 }
+      ]
+    },
+    {
+      "AnimalID": "boar",
+      "DisplayName": "Wild Boar",
+      "Behavior": "Neutral",
+      "Health": 100,
+      "AttackDamage": 20,
+      "WalkSpeed": 170,
+      "RunSpeed": 450,
+      "DetectionRadius": 2000,
+      "FleeDistance": 1500,
+      "AttackRange": 180,
+      "WanderRadius": 2000,
+      "ValidBiomes": ["forest", "swamp"],
+      "IsNocturnal": false,
+      "LootDrops": [
+        { "ItemID": "raw_meat", "Chance": 1.0, "MinCount": 3, "MaxCount": 5 },
+        { "ItemID": "animal_hide", "Chance": 1.0, "MinCount": 1, "MaxCount": 2 },
+        { "ItemID": "bone", "Chance": 0.5, "MinCount": 1, "MaxCount": 2 }
+      ]
+    },
+    {
+      "AnimalID": "polar_bear",
+      "DisplayName": "Polar Bear",
+      "Behavior": "Aggressive",
+      "Health": 300,
+      "AttackDamage": 60,
+      "WalkSpeed": 160,
+      "RunSpeed": 480,
+      "DetectionRadius": 3500,
+      "FleeDistance": 0,
+      "AttackRange": 280,
+      "WanderRadius": 5000,
+      "ValidBiomes": ["tundra"],
+      "IsNocturnal": false,
+      "LootDrops": [
+        { "ItemID": "raw_meat", "Chance": 1.0, "MinCount": 5, "MaxCount": 10 },
+        { "ItemID": "animal_hide", "Chance": 1.0, "MinCount": 3, "MaxCount": 5 },
+        { "ItemID": "bone", "Chance": 0.9, "MinCount": 3, "MaxCount": 6 }
+      ]
+    },
+    {
+      "AnimalID": "snake",
+      "DisplayName": "Venomous Snake",
+      "Behavior": "Territorial",
+      "Health": 20,
+      "AttackDamage": 10,
+      "WalkSpeed": 200,
+      "RunSpeed": 350,
+      "DetectionRadius": 800,
+      "FleeDistance": 300,
+      "AttackRange": 150,
+      "WanderRadius": 500,
+      "ValidBiomes": ["desert", "swamp", "forest"],
+      "IsNocturnal": true,
+      "LootDrops": [
+        { "ItemID": "raw_meat", "Chance": 0.6, "MinCount": 1, "MaxCount": 1 },
+        { "ItemID": "animal_hide", "Chance": 0.5, "MinCount": 1, "MaxCount": 1 }
+      ]
+    },
+    {
+      "AnimalID": "eagle",
+      "DisplayName": "Mountain Eagle",
+      "Behavior": "Passive",
+      "Health": 25,
+      "AttackDamage": 0,
+      "WalkSpeed": 100,
+      "RunSpeed": 800,
+      "DetectionRadius": 5000,
+      "FleeDistance": 6000,
+      "AttackRange": 0,
+      "WanderRadius": 8000,
+      "ValidBiomes": ["mountain", "coast"],
+      "IsNocturnal": false,
+      "LootDrops": [
+        { "ItemID": "feather", "Chance": 1.0, "MinCount": 3, "MaxCount": 6 },
+        { "ItemID": "raw_meat", "Chance": 0.5, "MinCount": 1, "MaxCount": 1 }
+      ]
+    },
+    {
+      "AnimalID": "alligator",
+      "DisplayName": "Swamp Alligator",
+      "Behavior": "Aggressive",
+      "Health": 180,
+      "AttackDamage": 45,
+      "WalkSpeed": 120,
+      "RunSpeed": 300,
+      "DetectionRadius": 2000,
+      "FleeDistance": 0,
+      "AttackRange": 250,
+      "WanderRadius": 1500,
+      "ValidBiomes": ["swamp"],
+      "IsNocturnal": false,
+      "LootDrops": [
+        { "ItemID": "raw_meat", "Chance": 1.0, "MinCount": 3, "MaxCount": 6 },
+        { "ItemID": "animal_hide", "Chance": 1.0, "MinCount": 2, "MaxCount": 4 },
+        { "ItemID": "bone", "Chance": 0.7, "MinCount": 2, "MaxCount": 4 }
+      ]
+    },
+    {
+      "AnimalID": "mountain_goat",
+      "DisplayName": "Mountain Goat",
+      "Behavior": "Passive",
+      "Health": 45,
+      "AttackDamage": 0,
+      "WalkSpeed": 200,
+      "RunSpeed": 500,
+      "DetectionRadius": 2000,
+      "FleeDistance": 3000,
+      "AttackRange": 0,
+      "WanderRadius": 2500,
+      "ValidBiomes": ["mountain"],
+      "IsNocturnal": false,
+      "LootDrops": [
+        { "ItemID": "raw_meat", "Chance": 1.0, "MinCount": 2, "MaxCount": 3 },
+        { "ItemID": "animal_hide", "Chance": 1.0, "MinCount": 1, "MaxCount": 2 },
+        { "ItemID": "bone", "Chance": 0.5, "MinCount": 1, "MaxCount": 2 }
+      ]
+    },
+    {
+      "AnimalID": "scorpion",
+      "DisplayName": "Desert Scorpion",
+      "Behavior": "Territorial",
+      "Health": 15,
+      "AttackDamage": 8,
+      "WalkSpeed": 150,
+      "RunSpeed": 250,
+      "DetectionRadius": 600,
+      "FleeDistance": 200,
+      "AttackRange": 100,
+      "WanderRadius": 400,
+      "ValidBiomes": ["desert"],
+      "IsNocturnal": true,
+      "LootDrops": [
+        { "ItemID": "bone", "Chance": 0.5, "MinCount": 1, "MaxCount": 1 }
+      ]
+    }
+  ]
+}

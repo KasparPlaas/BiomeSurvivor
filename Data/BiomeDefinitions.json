@@ -1,0 +1,167 @@
+{
+  "_comment": "Biome Definitions - Climate, resources, and weather data for each biome zone",
+  "version": "1.0",
+  "biomes": [
+    {
+      "BiomeID": "forest",
+      "DisplayName": "Temperate Forest",
+      "BiomeType": "Forest",
+      "Description": "Dense deciduous and conifer forests with plentiful resources. The most forgiving biome for new survivors. Moderate temperature swings between day and night.",
+      "DayTemperature": 22.0,
+      "NightTemperature": 8.0,
+      "Humidity": 0.6,
+      "DifficultyMultiplier": 1.0,
+      "WeatherPattern": {
+        "RainChance": 0.30,
+        "SnowChance": 0.0,
+        "FogChance": 0.15,
+        "StormChance": 0.05,
+        "AverageWindSpeed": 4.0
+      },
+      "Resources": {
+        "TreeDensity": 0.8,
+        "RockDensity": 0.3,
+        "PlantDensity": 0.6,
+        "WaterAvailability": 0.7
+      }
+    },
+    {
+      "BiomeID": "tundra",
+      "DisplayName": "Frozen Tundra",
+      "BiomeType": "Tundra",
+      "Description": "Vast frozen plains with biting cold and relentless wind. Resources are scarce. Hypothermia is the primary threat. Warm clothing is essential.",
+      "DayTemperature": -5.0,
+      "NightTemperature": -25.0,
+      "Humidity": 0.3,
+      "DifficultyMultiplier": 2.0,
+      "WeatherPattern": {
+        "RainChance": 0.0,
+        "SnowChance": 0.50,
+        "FogChance": 0.10,
+        "StormChance": 0.15,
+        "AverageWindSpeed": 12.0
+      },
+      "Resources": {
+        "TreeDensity": 0.1,
+        "RockDensity": 0.4,
+        "PlantDensity": 0.05,
+        "WaterAvailability": 0.2
+      }
+    },
+    {
+      "BiomeID": "desert",
+      "DisplayName": "Arid Desert",
+      "BiomeType": "Desert",
+      "Description": "Scorching desert with extreme heat during the day and freezing nights. Water is the most precious resource. Sandstorms reduce visibility.",
+      "DayTemperature": 45.0,
+      "NightTemperature": 5.0,
+      "Humidity": 0.05,
+      "DifficultyMultiplier": 1.8,
+      "WeatherPattern": {
+        "RainChance": 0.02,
+        "SnowChance": 0.0,
+        "FogChance": 0.05,
+        "StormChance": 0.10,
+        "AverageWindSpeed": 8.0
+      },
+      "Resources": {
+        "TreeDensity": 0.05,
+        "RockDensity": 0.5,
+        "PlantDensity": 0.1,
+        "WaterAvailability": 0.05
+      }
+    },
+    {
+      "BiomeID": "swamp",
+      "DisplayName": "Swamp Marshland",
+      "BiomeType": "Swamp",
+      "Description": "Humid, foggy marshland with murky water and dense vegetation. Disease and infection are constant threats. Rich in medicinal herbs but dangerous wildlife.",
+      "DayTemperature": 28.0,
+      "NightTemperature": 18.0,
+      "Humidity": 0.9,
+      "DifficultyMultiplier": 1.5,
+      "WeatherPattern": {
+        "RainChance": 0.45,
+        "SnowChance": 0.0,
+        "FogChance": 0.40,
+        "StormChance": 0.08,
+        "AverageWindSpeed": 2.0
+      },
+      "Resources": {
+        "TreeDensity": 0.5,
+        "RockDensity": 0.1,
+        "PlantDensity": 0.8,
+        "WaterAvailability": 0.9
+      }
+    },
+    {
+      "BiomeID": "mountain",
+      "DisplayName": "Alpine Mountain",
+      "BiomeType": "Mountain",
+      "Description": "Rugged mountain terrain with thin air and steep cliffs. Rich in ore deposits but treacherous to navigate. Temperature drops with altitude.",
+      "DayTemperature": 10.0,
+      "NightTemperature": -10.0,
+      "Humidity": 0.3,
+      "DifficultyMultiplier": 2.2,
+      "WeatherPattern": {
+        "RainChance": 0.15,
+        "SnowChance": 0.30,
+        "FogChance": 0.20,
+        "StormChance": 0.12,
+        "AverageWindSpeed": 15.0
+      },
+      "Resources": {
+        "TreeDensity": 0.2,
+        "RockDensity": 0.8,
+        "PlantDensity": 0.15,
+        "WaterAvailability": 0.4
+      }
+    },
+    {
+      "BiomeID": "coast",
+      "DisplayName": "Coastal Shore",
+      "BiomeType": "Coast",
+      "Description": "Windswept coastline with sandy beaches and rocky cliffs. Moderate climate but prone to storms. Fish and driftwood are key resources.",
+      "DayTemperature": 20.0,
+      "NightTemperature": 12.0,
+      "Humidity": 0.7,
+      "DifficultyMultiplier": 1.2,
+      "WeatherPattern": {
+        "RainChance": 0.25,
+        "SnowChance": 0.0,
+        "FogChance": 0.25,
+        "StormChance": 0.10,
+        "AverageWindSpeed": 10.0
+      },
+      "Resources": {
+        "TreeDensity": 0.15,
+        "RockDensity": 0.3,
+        "PlantDensity": 0.25,
+        "WaterAvailability": 0.3
+      }
+    },
+    {
+      "BiomeID": "cave",
+      "DisplayName": "Underground Cave",
+      "BiomeType": "Cave",
+      "Description": "Dark underground caverns. Constant temperature but zero natural light. Rich in rare ores and minerals. Dangerous creatures lurk in the darkness.",
+      "DayTemperature": 12.0,
+      "NightTemperature": 12.0,
+      "Humidity": 0.8,
+      "DifficultyMultiplier": 2.5,
+      "WeatherPattern": {
+        "RainChance": 0.0,
+        "SnowChance": 0.0,
+        "FogChance": 0.0,
+        "StormChance": 0.0,
+        "AverageWindSpeed": 0.0
+      },
+      "Resources": {
+        "TreeDensity": 0.0,
+        "RockDensity": 0.9,
+        "PlantDensity": 0.1,
+        "WaterAvailability": 0.3
+      }
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+{
+  "_comment": "Default Player Stats Configuration - Starting values and limits for all player systems",
+  "version": "1.0",
+  "stats": {
+    "Health": {
+      "MaxValue": 100,
+      "StartValue": 100,
+      "RegenRate": 0.5,
+      "RegenCondition": "HungerAbove50_ThirstAbove50"
+    },
+    "Hunger": {
+      "MaxValue": 100,
+      "StartValue": 80,
+      "DrainRate": 1.0,
+      "DrainUnit": "per_minute",
+      "StarvationDamage": 2.0,
+      "StarvationThreshold": 0
+    },
+    "Thirst": {
+      "MaxValue": 100,
+      "StartValue": 80,
+      "DrainRate": 1.5,
+      "DrainUnit": "per_minute",
+      "DehydrationDamage": 3.0,
+      "DehydrationThreshold": 0
+    },
+    "Stamina": {
+      "MaxValue": 100,
+      "StartValue": 100,
+      "RegenRate": 8.0,
+      "RegenUnit": "per_second",
+      "SprintDrainRate": 12.0,
+      "SprintDrainUnit": "per_second"
+    },
+    "Comfort": {
+      "MaxValue": 100,
+      "StartValue": 50,
+      "Description": "Affected by shelter, fire proximity, sleep quality"
+    },
+    "Weight": {
+      "MaxCarryWeight": 40.0,
+      "Unit": "kg",
+      "OverweightSpeedPenalty": 0.5,
+      "OverweightStaminaPenalty": 2.0
+    }
+  },
+  "temperature": {
+    "NormalBodyTemp": 37.0,
+    "MinBodyTemp": 25.0,
+    "MaxBodyTemp": 45.0,
+    "HypothermiaThreshold": 35.0,
+    "HyperthermiaThreshold": 39.0,
+    "BodyRegulationRate": 0.5,
+    "WindChillMaxReduction": 10.0,
+    "WetnessMaxReduction": 5.0,
+    "HeatSourceMaxBonus": 10.0
+  },
+  "nutrition": {
+    "DailyCalorieNeed": 2000,
+    "BaseCalorieBurnRate": 1.4,
+    "BurnRateUnit": "per_second",
+    "ActivityMultipliers": {
+      "Idle": 1.0,
+      "Walking": 1.3,
+      "Running": 1.8,
+      "Sprinting": 2.5
+    },
+    "FoodQualityMultipliers": {
+      "Raw": 0.7,
+      "Cooked": 1.5,
+      "WellCooked": 1.8,
+      "Burned": 0.5,
+      "Spoiled": 0.3
+    }
+  },
+  "sleep": {
+    "MaxFatigue": 100,
+    "FatigueRate": 0.07,
+    "FatigueUnit": "per_second",
+    "PenaltyThreshold": 70,
+    "ExhaustionThreshold": 95,
+    "SleepRecoveryRate": 5.0,
+    "SleepHealRate": 0.5,
+    "SleepComfortRecovery": 2.0
+  },
+  "movement": {
+    "WalkSpeed": 250,
+    "RunSpeed": 450,
+    "SprintSpeed": 650,
+    "CrouchSpeed": 150,
+    "SwimSpeed": 200,
+    "Unit": "cm_per_second"
+  },
+  "skills": {
+    "StartingLevel": 1,
+    "MaxLevel": 100,
+    "Categories": [
+      {
+        "Name": "Gathering",
+        "Description": "Improves resource yield from harvesting"
+      },
+      {
+        "Name": "Crafting",
+        "Description": "Unlocks advanced recipes and improves crafting speed"
+      },
+      {
+        "Name": "Combat",
+        "Description": "Increases damage dealt and reduces damage taken"
+      },
+      {
+        "Name": "Survival",
+        "Description": "Reduces food/water drain and improves temperature resistance"
+      },
+      {
+        "Name": "Stealth",
+        "Description": "Reduces detection by wildlife and improves sneak movement"
+      },
+      {
+        "Name": "Building",
+        "Description": "Unlocks advanced building pieces and improves structural integrity"
+      }
+    ]
+  }
+}

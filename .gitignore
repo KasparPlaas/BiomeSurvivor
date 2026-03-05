@@ -1,0 +1,57 @@
+# =========================
+# Biome Survivor .gitignore
+# Unreal Engine 5 Project
+# =========================
+
+# ----- Compiled / Generated -----
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+Build/
+Builds/
+
+# ----- Visual Studio -----
+.vs/
+*.sln
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.vcxproj
+*.vcxproj.*
+
+# ----- UE5 Generated -----
+*.VC.db
+*.VC.opendb
+*.opensdf
+*.sdf
+*.cachefile
+*.ipch
+
+# ----- OS Files -----
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+._*
+
+# ----- Build Outputs -----
+*.exe
+*.dll
+*.lib
+*.pdb
+*.exp
+*.obj
+*.o
+*.log
+
+# ----- IDE -----
+.idea/
+*.swp
+*~
+.vscode/settings.json
+
+# ----- Packaging -----
+Releases/
+PackagedBuilds/

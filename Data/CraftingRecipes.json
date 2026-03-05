@@ -1,0 +1,407 @@
+{
+  "_comment": "Crafting Recipes Database - All craftable items in Biome Survivor",
+  "version": "1.0",
+  "recipes": [
+    {
+      "RecipeID": "recipe_rope",
+      "OutputItemID": "rope",
+      "OutputQuantity": 1,
+      "Category": "Basic",
+      "CraftingTime": 3.0,
+      "RequiredSkillLevel": 0,
+      "XPReward": 5,
+      "Ingredients": [
+        { "ItemID": "plant_fiber", "Quantity": 4 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_cloth",
+      "OutputItemID": "cloth",
+      "OutputQuantity": 1,
+      "Category": "Basic",
+      "CraftingTime": 5.0,
+      "RequiredSkillLevel": 0,
+      "XPReward": 8,
+      "Ingredients": [
+        { "ItemID": "plant_fiber", "Quantity": 6 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_stone_axe",
+      "OutputItemID": "stone_axe",
+      "OutputQuantity": 1,
+      "Category": "Basic",
+      "CraftingTime": 8.0,
+      "RequiredSkillLevel": 0,
+      "XPReward": 15,
+      "Ingredients": [
+        { "ItemID": "stone", "Quantity": 3 },
+        { "ItemID": "wood_log", "Quantity": 2 },
+        { "ItemID": "plant_fiber", "Quantity": 2 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_stone_pickaxe",
+      "OutputItemID": "stone_pickaxe",
+      "OutputQuantity": 1,
+      "Category": "Basic",
+      "CraftingTime": 8.0,
+      "RequiredSkillLevel": 0,
+      "XPReward": 15,
+      "Ingredients": [
+        { "ItemID": "stone", "Quantity": 4 },
+        { "ItemID": "wood_log", "Quantity": 2 },
+        { "ItemID": "plant_fiber", "Quantity": 2 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_hunting_knife",
+      "OutputItemID": "hunting_knife",
+      "OutputQuantity": 1,
+      "Category": "Basic",
+      "CraftingTime": 6.0,
+      "RequiredSkillLevel": 1,
+      "XPReward": 12,
+      "Ingredients": [
+        { "ItemID": "stone", "Quantity": 2 },
+        { "ItemID": "wood_log", "Quantity": 1 },
+        { "ItemID": "rope", "Quantity": 1 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_wooden_spear",
+      "OutputItemID": "wooden_spear",
+      "OutputQuantity": 1,
+      "Category": "Basic",
+      "CraftingTime": 5.0,
+      "RequiredSkillLevel": 0,
+      "XPReward": 10,
+      "Ingredients": [
+        { "ItemID": "wood_log", "Quantity": 3 },
+        { "ItemID": "flint", "Quantity": 1 },
+        { "ItemID": "rope", "Quantity": 1 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_wooden_bow",
+      "OutputItemID": "wooden_bow",
+      "OutputQuantity": 1,
+      "Category": "Basic",
+      "CraftingTime": 10.0,
+      "RequiredSkillLevel": 2,
+      "XPReward": 20,
+      "Ingredients": [
+        { "ItemID": "wood_log", "Quantity": 2 },
+        { "ItemID": "rope", "Quantity": 2 },
+        { "ItemID": "plant_fiber", "Quantity": 4 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_stone_arrow",
+      "OutputItemID": "stone_arrow",
+      "OutputQuantity": 5,
+      "Category": "Basic",
+      "CraftingTime": 4.0,
+      "RequiredSkillLevel": 1,
+      "XPReward": 8,
+      "Ingredients": [
+        { "ItemID": "wood_log", "Quantity": 1 },
+        { "ItemID": "flint", "Quantity": 2 },
+        { "ItemID": "feather", "Quantity": 3 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_torch",
+      "OutputItemID": "torch",
+      "OutputQuantity": 1,
+      "Category": "Basic",
+      "CraftingTime": 3.0,
+      "RequiredSkillLevel": 0,
+      "XPReward": 5,
+      "Ingredients": [
+        { "ItemID": "wood_log", "Quantity": 1 },
+        { "ItemID": "cloth", "Quantity": 1 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_bandage",
+      "OutputItemID": "bandage",
+      "OutputQuantity": 2,
+      "Category": "Basic",
+      "CraftingTime": 4.0,
+      "RequiredSkillLevel": 0,
+      "XPReward": 8,
+      "Ingredients": [
+        { "ItemID": "cloth", "Quantity": 2 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_bedroll",
+      "OutputItemID": "bedroll",
+      "OutputQuantity": 1,
+      "Category": "Basic",
+      "CraftingTime": 12.0,
+      "RequiredSkillLevel": 1,
+      "XPReward": 20,
+      "Ingredients": [
+        { "ItemID": "cloth", "Quantity": 6 },
+        { "ItemID": "leather", "Quantity": 3 },
+        { "ItemID": "rope", "Quantity": 2 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_wooden_shield",
+      "OutputItemID": "wooden_shield",
+      "OutputQuantity": 1,
+      "Category": "Workbench",
+      "CraftingTime": 15.0,
+      "RequiredSkillLevel": 2,
+      "XPReward": 25,
+      "Ingredients": [
+        { "ItemID": "wood_log", "Quantity": 6 },
+        { "ItemID": "rope", "Quantity": 2 },
+        { "ItemID": "leather", "Quantity": 2 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_iron_ingot",
+      "OutputItemID": "iron_ingot",
+      "OutputQuantity": 1,
+      "Category": "Forge",
+      "CraftingTime": 20.0,
+      "RequiredSkillLevel": 3,
+      "XPReward": 30,
+      "Ingredients": [
+        { "ItemID": "iron_ore", "Quantity": 2 },
+        { "ItemID": "coal", "Quantity": 1 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_iron_axe",
+      "OutputItemID": "iron_axe",
+      "OutputQuantity": 1,
+      "Category": "Forge",
+      "CraftingTime": 25.0,
+      "RequiredSkillLevel": 3,
+      "XPReward": 40,
+      "Ingredients": [
+        { "ItemID": "iron_ingot", "Quantity": 2 },
+        { "ItemID": "wood_log", "Quantity": 2 },
+        { "ItemID": "leather", "Quantity": 1 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_iron_pickaxe",
+      "OutputItemID": "iron_pickaxe",
+      "OutputQuantity": 1,
+      "Category": "Forge",
+      "CraftingTime": 25.0,
+      "RequiredSkillLevel": 3,
+      "XPReward": 40,
+      "Ingredients": [
+        { "ItemID": "iron_ingot", "Quantity": 3 },
+        { "ItemID": "wood_log", "Quantity": 2 },
+        { "ItemID": "leather", "Quantity": 1 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_iron_sword",
+      "OutputItemID": "iron_sword",
+      "OutputQuantity": 1,
+      "Category": "Forge",
+      "CraftingTime": 30.0,
+      "RequiredSkillLevel": 4,
+      "XPReward": 50,
+      "Ingredients": [
+        { "ItemID": "iron_ingot", "Quantity": 3 },
+        { "ItemID": "wood_log", "Quantity": 1 },
+        { "ItemID": "leather", "Quantity": 2 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_iron_arrow",
+      "OutputItemID": "iron_arrow",
+      "OutputQuantity": 5,
+      "Category": "Forge",
+      "CraftingTime": 10.0,
+      "RequiredSkillLevel": 3,
+      "XPReward": 15,
+      "Ingredients": [
+        { "ItemID": "iron_ingot", "Quantity": 1 },
+        { "ItemID": "wood_log", "Quantity": 1 },
+        { "ItemID": "feather", "Quantity": 3 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_leather",
+      "OutputItemID": "leather",
+      "OutputQuantity": 1,
+      "Category": "Tannery",
+      "CraftingTime": 15.0,
+      "RequiredSkillLevel": 1,
+      "XPReward": 12,
+      "Ingredients": [
+        { "ItemID": "animal_hide", "Quantity": 2 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_cloth_shirt",
+      "OutputItemID": "cloth_shirt",
+      "OutputQuantity": 1,
+      "Category": "Workbench",
+      "CraftingTime": 12.0,
+      "RequiredSkillLevel": 1,
+      "XPReward": 15,
+      "Ingredients": [
+        { "ItemID": "cloth", "Quantity": 4 },
+        { "ItemID": "rope", "Quantity": 1 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_cloth_pants",
+      "OutputItemID": "cloth_pants",
+      "OutputQuantity": 1,
+      "Category": "Workbench",
+      "CraftingTime": 10.0,
+      "RequiredSkillLevel": 1,
+      "XPReward": 12,
+      "Ingredients": [
+        { "ItemID": "cloth", "Quantity": 3 },
+        { "ItemID": "rope", "Quantity": 1 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_leather_jacket",
+      "OutputItemID": "leather_jacket",
+      "OutputQuantity": 1,
+      "Category": "Tannery",
+      "CraftingTime": 25.0,
+      "RequiredSkillLevel": 3,
+      "XPReward": 35,
+      "Ingredients": [
+        { "ItemID": "leather", "Quantity": 5 },
+        { "ItemID": "cloth", "Quantity": 3 },
+        { "ItemID": "rope", "Quantity": 2 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_leather_boots",
+      "OutputItemID": "leather_boots",
+      "OutputQuantity": 1,
+      "Category": "Tannery",
+      "CraftingTime": 15.0,
+      "RequiredSkillLevel": 2,
+      "XPReward": 20,
+      "Ingredients": [
+        { "ItemID": "leather", "Quantity": 3 },
+        { "ItemID": "rope", "Quantity": 1 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_leather_gloves",
+      "OutputItemID": "leather_gloves",
+      "OutputQuantity": 1,
+      "Category": "Tannery",
+      "CraftingTime": 10.0,
+      "RequiredSkillLevel": 2,
+      "XPReward": 15,
+      "Ingredients": [
+        { "ItemID": "leather", "Quantity": 2 },
+        { "ItemID": "rope", "Quantity": 1 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_fur_coat",
+      "OutputItemID": "fur_coat",
+      "OutputQuantity": 1,
+      "Category": "Tannery",
+      "CraftingTime": 35.0,
+      "RequiredSkillLevel": 5,
+      "XPReward": 60,
+      "Ingredients": [
+        { "ItemID": "leather", "Quantity": 6 },
+        { "ItemID": "animal_hide", "Quantity": 4 },
+        { "ItemID": "cloth", "Quantity": 3 },
+        { "ItemID": "rope", "Quantity": 2 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_backpack",
+      "OutputItemID": "backpack",
+      "OutputQuantity": 1,
+      "Category": "Tannery",
+      "CraftingTime": 30.0,
+      "RequiredSkillLevel": 3,
+      "XPReward": 40,
+      "Ingredients": [
+        { "ItemID": "leather", "Quantity": 5 },
+        { "ItemID": "cloth", "Quantity": 4 },
+        { "ItemID": "rope", "Quantity": 3 },
+        { "ItemID": "iron_ingot", "Quantity": 1 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_cooked_meat",
+      "OutputItemID": "cooked_meat",
+      "OutputQuantity": 1,
+      "Category": "Cooking",
+      "CraftingTime": 10.0,
+      "RequiredSkillLevel": 0,
+      "XPReward": 10,
+      "Ingredients": [
+        { "ItemID": "raw_meat", "Quantity": 1 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_clean_water",
+      "OutputItemID": "water_bottle_clean",
+      "OutputQuantity": 1,
+      "Category": "Cooking",
+      "CraftingTime": 8.0,
+      "RequiredSkillLevel": 0,
+      "XPReward": 8,
+      "Ingredients": [
+        { "ItemID": "water_bottle_dirty", "Quantity": 1 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_herbal_medicine",
+      "OutputItemID": "herbal_medicine",
+      "OutputQuantity": 1,
+      "Category": "Alchemy",
+      "CraftingTime": 15.0,
+      "RequiredSkillLevel": 2,
+      "XPReward": 25,
+      "Ingredients": [
+        { "ItemID": "medicinal_herb", "Quantity": 3 },
+        { "ItemID": "water_bottle_clean", "Quantity": 1 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_splint",
+      "OutputItemID": "splint",
+      "OutputQuantity": 1,
+      "Category": "Basic",
+      "CraftingTime": 5.0,
+      "RequiredSkillLevel": 1,
+      "XPReward": 10,
+      "Ingredients": [
+        { "ItemID": "wood_log", "Quantity": 2 },
+        { "ItemID": "cloth", "Quantity": 2 }
+      ]
+    },
+    {
+      "RecipeID": "recipe_water_bottle",
+      "OutputItemID": "water_bottle_empty",
+      "OutputQuantity": 1,
+      "Category": "Basic",
+      "CraftingTime": 6.0,
+      "RequiredSkillLevel": 1,
+      "XPReward": 10,
+      "Ingredients": [
+        { "ItemID": "leather", "Quantity": 2 },
+        { "ItemID": "rope", "Quantity": 1 }
+      ]
+    }
+  ]
+}
