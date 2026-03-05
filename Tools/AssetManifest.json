@@ -1,0 +1,353 @@
+{
+  "project": "BiomeSurvivor",
+  "license": "CC0 - Creative Commons Zero",
+  "texture_sources": "ambientCG.com",
+  "audio_sources": "OpenGameArt.org",
+  "textures": {
+    "total_packs": 18,
+    "packs": [
+      {
+        "name": "Grass001_1K-JPG",
+        "category": "Grass",
+        "types": [
+          "Unknown",
+          "AO",
+          "BaseColor",
+          "Displacement",
+          "Normal",
+          "Roughness"
+        ],
+        "ue5_path": "/Game/BiomeSurvivor/Textures/Grass/Grass001_1K-JPG",
+        "material_instance": "/Game/BiomeSurvivor/Materials/Landscape/MI_Grass001_1K-JPG"
+      },
+      {
+        "name": "Grass004_1K-JPG",
+        "category": "Grass",
+        "types": [
+          "Unknown",
+          "AO",
+          "BaseColor",
+          "Displacement",
+          "Normal",
+          "Roughness"
+        ],
+        "ue5_path": "/Game/BiomeSurvivor/Textures/Grass/Grass004_1K-JPG",
+        "material_instance": "/Game/BiomeSurvivor/Materials/Landscape/MI_Grass004_1K-JPG"
+      },
+      {
+        "name": "Moss001_1K-JPG",
+        "category": "Grass",
+        "types": [
+          "Unknown",
+          "AO",
+          "BaseColor",
+          "Displacement",
+          "Normal",
+          "Roughness"
+        ],
+        "ue5_path": "/Game/BiomeSurvivor/Textures/Grass/Moss001_1K-JPG",
+        "material_instance": "/Game/BiomeSurvivor/Materials/Landscape/MI_Moss001_1K-JPG"
+      },
+      {
+        "name": "Ground037_1K-JPG",
+        "category": "Ground",
+        "types": [
+          "Unknown",
+          "AO",
+          "BaseColor",
+          "Displacement",
+          "Normal",
+          "Roughness"
+        ],
+        "ue5_path": "/Game/BiomeSurvivor/Textures/Ground/Ground037_1K-JPG",
+        "material_instance": "/Game/BiomeSurvivor/Materials/Landscape/MI_Ground037_1K-JPG"
+      },
+      {
+        "name": "Ground103_1K-JPG",
+        "category": "Ground",
+        "types": [
+          "Unknown",
+          "AO",
+          "BaseColor",
+          "Displacement",
+          "Normal",
+          "Roughness"
+        ],
+        "ue5_path": "/Game/BiomeSurvivor/Textures/Ground/Ground103_1K-JPG",
+        "material_instance": "/Game/BiomeSurvivor/Materials/Landscape/MI_Ground103_1K-JPG"
+      },
+      {
+        "name": "Metal034_1K-JPG",
+        "category": "Metal",
+        "types": [
+          "Unknown",
+          "BaseColor",
+          "Displacement",
+          "Metallic",
+          "Normal",
+          "Roughness"
+        ],
+        "ue5_path": "/Game/BiomeSurvivor/Textures/Metal/Metal034_1K-JPG",
+        "material_instance": "/Game/BiomeSurvivor/Materials/Landscape/MI_Metal034_1K-JPG"
+      },
+      {
+        "name": "Metal038_1K-JPG",
+        "category": "Metal",
+        "types": [
+          "Unknown",
+          "BaseColor",
+          "Displacement",
+          "Metallic",
+          "Normal",
+          "Roughness"
+        ],
+        "ue5_path": "/Game/BiomeSurvivor/Textures/Metal/Metal038_1K-JPG",
+        "material_instance": "/Game/BiomeSurvivor/Materials/Landscape/MI_Metal038_1K-JPG"
+      },
+      {
+        "name": "Rock030_1K-JPG",
+        "category": "Rock",
+        "types": [
+          "Unknown",
+          "AO",
+          "BaseColor",
+          "Displacement",
+          "Normal",
+          "Roughness"
+        ],
+        "ue5_path": "/Game/BiomeSurvivor/Textures/Rock/Rock030_1K-JPG",
+        "material_instance": "/Game/BiomeSurvivor/Materials/Landscape/MI_Rock030_1K-JPG"
+      },
+      {
+        "name": "Rock034_1K-JPG",
+        "category": "Rock",
+        "types": [
+          "Unknown",
+          "AO",
+          "BaseColor",
+          "Displacement",
+          "Normal",
+          "Roughness"
+        ],
+        "ue5_path": "/Game/BiomeSurvivor/Textures/Rock/Rock034_1K-JPG",
+        "material_instance": "/Game/BiomeSurvivor/Materials/Landscape/MI_Rock034_1K-JPG"
+      },
+      {
+        "name": "Gravel017_1K-JPG",
+        "category": "Sand",
+        "types": [
+          "Unknown",
+          "AO",
+          "BaseColor",
+          "Displacement",
+          "Normal",
+          "Roughness"
+        ],
+        "ue5_path": "/Game/BiomeSurvivor/Textures/Sand/Gravel017_1K-JPG",
+        "material_instance": "/Game/BiomeSurvivor/Materials/Landscape/MI_Gravel017_1K-JPG"
+      },
+      {
+        "name": "Gravel022_1K-JPG",
+        "category": "Sand",
+        "types": [
+          "Unknown",
+          "AO",
+          "BaseColor",
+          "Displacement",
+          "Normal",
+          "Roughness"
+        ],
+        "ue5_path": "/Game/BiomeSurvivor/Textures/Sand/Gravel022_1K-JPG",
+        "material_instance": "/Game/BiomeSurvivor/Materials/Landscape/MI_Gravel022_1K-JPG"
+      },
+      {
+        "name": "Gravel026_1K-JPG",
+        "category": "Sand",
+        "types": [
+          "Unknown",
+          "AO",
+          "BaseColor",
+          "Displacement",
+          "Normal",
+          "Roughness"
+        ],
+        "ue5_path": "/Game/BiomeSurvivor/Textures/Sand/Gravel026_1K-JPG",
+        "material_instance": "/Game/BiomeSurvivor/Materials/Landscape/MI_Gravel026_1K-JPG"
+      },
+      {
+        "name": "Ground046_1K-JPG",
+        "category": "Sand",
+        "types": [
+          "Unknown",
+          "AO",
+          "BaseColor",
+          "Displacement",
+          "Normal",
+          "Roughness"
+        ],
+        "ue5_path": "/Game/BiomeSurvivor/Textures/Sand/Ground046_1K-JPG",
+        "material_instance": "/Game/BiomeSurvivor/Materials/Landscape/MI_Ground046_1K-JPG"
+      },
+      {
+        "name": "Ground054_1K-JPG",
+        "category": "Sand",
+        "types": [
+          "Unknown",
+          "AO",
+          "BaseColor",
+          "Displacement",
+          "Normal",
+          "Roughness"
+        ],
+        "ue5_path": "/Game/BiomeSurvivor/Textures/Sand/Ground054_1K-JPG",
+        "material_instance": "/Game/BiomeSurvivor/Materials/Landscape/MI_Ground054_1K-JPG"
+      },
+      {
+        "name": "Snow013_1K-JPG",
+        "category": "Snow",
+        "types": [
+          "Unknown",
+          "AO",
+          "BaseColor",
+          "Displacement",
+          "Normal",
+          "Roughness"
+        ],
+        "ue5_path": "/Game/BiomeSurvivor/Textures/Snow/Snow013_1K-JPG",
+        "material_instance": "/Game/BiomeSurvivor/Materials/Landscape/MI_Snow013_1K-JPG"
+      },
+      {
+        "name": "Snow014_1K-JPG",
+        "category": "Snow",
+        "types": [
+          "Unknown",
+          "AO",
+          "BaseColor",
+          "Displacement",
+          "Normal",
+          "Roughness"
+        ],
+        "ue5_path": "/Game/BiomeSurvivor/Textures/Snow/Snow014_1K-JPG",
+        "material_instance": "/Game/BiomeSurvivor/Materials/Landscape/MI_Snow014_1K-JPG"
+      },
+      {
+        "name": "Bark006_1K-JPG",
+        "category": "Wood",
+        "types": [
+          "Unknown",
+          "AO",
+          "BaseColor",
+          "Displacement",
+          "Normal",
+          "Roughness"
+        ],
+        "ue5_path": "/Game/BiomeSurvivor/Textures/Wood/Bark006_1K-JPG",
+        "material_instance": "/Game/BiomeSurvivor/Materials/Landscape/MI_Bark006_1K-JPG"
+      },
+      {
+        "name": "WoodFloor040_1K-JPG",
+        "category": "Wood",
+        "types": [
+          "Unknown",
+          "AO",
+          "BaseColor",
+          "Displacement",
+          "Normal",
+          "Roughness"
+        ],
+        "ue5_path": "/Game/BiomeSurvivor/Textures/Wood/WoodFloor040_1K-JPG",
+        "material_instance": "/Game/BiomeSurvivor/Materials/Landscape/MI_WoodFloor040_1K-JPG"
+      }
+    ]
+  },
+  "audio": {
+    "categories": {
+      "Ambient": {
+        "count": 31,
+        "ue5_path": "/Game/BiomeSurvivor/Audio/Ambient",
+        "settings": {
+          "SoundClass": "Ambient",
+          "Concurrency": 2,
+          "AttenuationMin": 500.0,
+          "AttenuationMax": 10000.0,
+          "AttenuationShape": "Sphere",
+          "Spatialized": true,
+          "Looping": true
+        }
+      },
+      "Combat": {
+        "count": 123,
+        "ue5_path": "/Game/BiomeSurvivor/Audio/Combat",
+        "settings": {
+          "SoundClass": "SFX",
+          "Concurrency": 8,
+          "AttenuationMin": 200.0,
+          "AttenuationMax": 5000.0,
+          "AttenuationShape": "Sphere",
+          "Spatialized": true
+        }
+      },
+      "Footsteps": {
+        "count": 8,
+        "ue5_path": "/Game/BiomeSurvivor/Audio/Footsteps",
+        "settings": {
+          "SoundClass": "SFX",
+          "Concurrency": 4,
+          "AttenuationMin": 100.0,
+          "AttenuationMax": 2000.0,
+          "AttenuationShape": "Sphere",
+          "Spatialized": true
+        }
+      },
+      "RPG": {
+        "count": 243,
+        "ue5_path": "/Game/BiomeSurvivor/Audio/RPG",
+        "settings": {
+          "SoundClass": "SFX",
+          "Concurrency": 8,
+          "AttenuationMin": 200.0,
+          "AttenuationMax": 5000.0,
+          "AttenuationShape": "Sphere",
+          "Spatialized": true
+        }
+      },
+      "SFX": {
+        "count": 100,
+        "ue5_path": "/Game/BiomeSurvivor/Audio/SFX",
+        "settings": {
+          "SoundClass": "SFX",
+          "Concurrency": 8,
+          "AttenuationMin": 200.0,
+          "AttenuationMax": 5000.0,
+          "AttenuationShape": "Sphere",
+          "Spatialized": true
+        }
+      },
+      "Weather": {
+        "count": 3,
+        "ue5_path": "/Game/BiomeSurvivor/Audio/Weather",
+        "settings": {
+          "SoundClass": "Ambient",
+          "Concurrency": 2,
+          "AttenuationMin": 0.0,
+          "AttenuationMax": 0.0,
+          "Spatialized": false,
+          "Looping": true
+        }
+      },
+      "Wildlife": {
+        "count": 1,
+        "ue5_path": "/Game/BiomeSurvivor/Audio/Wildlife",
+        "settings": {
+          "SoundClass": "Ambient",
+          "Concurrency": 6,
+          "AttenuationMin": 300.0,
+          "AttenuationMax": 8000.0,
+          "AttenuationShape": "Sphere",
+          "Spatialized": true
+        }
+      }
+    },
+    "total_files": 509
+  }
+}
