@@ -19,6 +19,7 @@
 #include "Core/InteractableInterface.h"
 #include "Core/BiomeSurvivorGameMode.h"
 #include "Inventory/ItemDatabase.h"
+#include "Crafting/RecipeDatabase.h"
 #include "BiomeSurvivor.h"
 
 #include "Camera/CameraComponent.h"
@@ -48,6 +49,7 @@ static UInputMappingContext* CreateDefaultMappingContext(
 	UInputAction* Move, UInputAction* Look, UInputAction* Jump, UInputAction* Sprint,
 	UInputAction* Crouch, UInputAction* Interact, UInputAction* Attack, UInputAction* Block,
 	UInputAction* Dodge, UInputAction* ToggleCamera, UInputAction* Pause, UInputAction* Inventory,
+	UInputAction* Craft,
 	UInputAction* QB1, UInputAction* QB2, UInputAction* QB3, UInputAction* QB4)
 {
 	UInputMappingContext* IMC = NewObject<UInputMappingContext>(GetTransientPackage(), TEXT("IMC_DefaultRuntime"));
@@ -108,6 +110,9 @@ static UInputMappingContext* CreateDefaultMappingContext(
 
 	// Tab -> Inventory
 	IMC->MapKey(Inventory, EKeys::Tab);
+
+	// C -> Craft
+	IMC->MapKey(Craft, EKeys::C);
 
 	// Number keys -> Quickbar
 	IMC->MapKey(QB1, EKeys::One);
@@ -243,6 +248,7 @@ void ASurvivorCharacter::BeginPlay()
 	if (!ToggleCameraAction) ToggleCameraAction = CreateRuntimeInputAction(TEXT("IA_ToggleCamera"), EInputActionValueType::Boolean);
 	if (!PauseAction) PauseAction = CreateRuntimeInputAction(TEXT("IA_Pause"), EInputActionValueType::Boolean);
 	if (!InventoryAction) InventoryAction = CreateRuntimeInputAction(TEXT("IA_Inventory"), EInputActionValueType::Boolean);
+	if (!CraftAction) CraftAction = CreateRuntimeInputAction(TEXT("IA_Craft"), EInputActionValueType::Boolean);
 	if (!QuickBar1Action) QuickBar1Action = CreateRuntimeInputAction(TEXT("IA_QB1"), EInputActionValueType::Boolean);
 	if (!QuickBar2Action) QuickBar2Action = CreateRuntimeInputAction(TEXT("IA_QB2"), EInputActionValueType::Boolean);
 	if (!QuickBar3Action) QuickBar3Action = CreateRuntimeInputAction(TEXT("IA_QB3"), EInputActionValueType::Boolean);
@@ -259,13 +265,19 @@ void ASurvivorCharacter::BeginPlay()
 			UInputMappingContext* DefaultIMC = CreateDefaultMappingContext(
 				MoveAction, LookAction, JumpAction, SprintAction, CrouchAction,
 				InteractAction, AttackAction, BlockAction, DodgeAction, ToggleCameraAction,
-				PauseAction, InventoryAction,
+				PauseAction, InventoryAction, CraftAction,
 				QuickBar1Action, QuickBar2Action, QuickBar3Action, QuickBar4Action);
 			Subsystem->AddMappingContext(DefaultIMC, 0);
 
 			UE_LOG(LogBiomeSurvivor, Log, TEXT("Runtime input mapping context registered"));
 		}
 	}
+
+	// Initialize runtime recipe database
+	FRecipeDatabase::Initialize();
+
+	// Give starter items
+	GiveStarterKit();
 }
 
 void ASurvivorCharacter::Tick(float DeltaTime)
@@ -301,6 +313,15 @@ void ASurvivorCharacter::Tick(float DeltaTime)
 		float BaseSpeed = bIsSprinting ? 650.0f : 450.0f;
 		GetCharacterMovement()->MaxWalkSpeed = BaseSpeed / Penalty;
 	}
+
+	// Damage flash decay
+	if (DamageFlashTimer > 0.0f)
+	{
+		DamageFlashTimer -= DeltaTime;
+	}
+
+	// Continuous interaction prompt
+	UpdateInteractionPrompt();
 }
 
 void ASurvivorCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -339,6 +360,8 @@ void ASurvivorCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 			EnhancedInput->BindAction(PauseAction, ETriggerEvent::Started, this, &ASurvivorCharacter::HandlePause);
 		if (InventoryAction)
 			EnhancedInput->BindAction(InventoryAction, ETriggerEvent::Started, this, &ASurvivorCharacter::HandleToggleInventory);
+		if (CraftAction)
+			EnhancedInput->BindAction(CraftAction, ETriggerEvent::Started, this, &ASurvivorCharacter::HandleCraft);
 
 		// Quickbar keys
 		if (QuickBar1Action)
@@ -605,6 +628,7 @@ float ASurvivorCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dam
 	if (StatsComponent)
 	{
 		StatsComponent->ApplyDamage(ActualDamage);
+		DamageFlashTimer = 0.4f; // Red flash for 0.4 seconds
 
 		if (StatsComponent->GetHealth() <= 0.0f)
 		{
@@ -749,4 +773,136 @@ void ASurvivorCharacter::HandleQuickBar4()
 			if (ASurvivorHUD* HUD = Cast<ASurvivorHUD>(PC->GetHUD()))
 				HUD->ShowNotification(FText::FromString(TEXT("Used quickbar slot 4")), 1.0f);
 	}
+}
+
+// ============ CRAFTING MENU ============
+
+void ASurvivorCharacter::HandleCraft()
+{
+	if (bIsDead) return;
+
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (!PC) return;
+
+	if (ASurvivorHUD* HUD = Cast<ASurvivorHUD>(PC->GetHUD()))
+	{
+		HUD->ToggleCraftingMenu();
+	}
+}
+
+// ============ STARTER KIT ============
+
+void ASurvivorCharacter::GiveStarterKit()
+{
+	if (!InventoryComponent) return;
+
+	// Basic survival supplies
+	InventoryComponent->AddItem(FName("Wood"), 5);
+	InventoryComponent->AddItem(FName("Stone"), 3);
+	InventoryComponent->AddItem(FName("Fiber"), 5);
+	InventoryComponent->AddItem(FName("Berries"), 10);
+	InventoryComponent->AddItem(FName("Bandage"), 2);
+
+	// Assign berries to quickbar slot 1 for quick eating
+	int32 BerrySlot = InventoryComponent->FindItemSlot(FName("Berries"));
+	if (BerrySlot >= 0)
+	{
+		InventoryComponent->AssignToQuickBar(BerrySlot, 0);
+	}
+
+	// Assign bandage to quickbar slot 2
+	int32 BandageSlot = InventoryComponent->FindItemSlot(FName("Bandage"));
+	if (BandageSlot >= 0)
+	{
+		InventoryComponent->AssignToQuickBar(BandageSlot, 1);
+	}
+
+	UE_LOG(LogBiomeSurvivor, Log, TEXT("Starter kit given to %s"), *GetName());
+}
+
+// ============ INTERACTION PROMPT (Tick-driven) ============
+
+void ASurvivorCharacter::UpdateInteractionPrompt()
+{
+	ASurvivorHUD* HUD = nullptr;
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		HUD = Cast<ASurvivorHUD>(PC->GetHUD());
+	}
+	if (!HUD) return;
+
+	FVector Start = FollowCamera->GetComponentLocation();
+	FVector End = Start + FollowCamera->GetForwardVector() * InteractDistance;
+
+	FHitResult HitResult;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params))
+	{
+		AActor* HitActor = HitResult.GetActor();
+		if (HitActor)
+		{
+			// WorldPickup
+			if (AWorldPickup* Pickup = Cast<AWorldPickup>(HitActor))
+			{
+				FString ItemName = FItemDatabase::GetDisplayName(Pickup->ItemID).ToString();
+				HUD->ShowInteractionPrompt(
+					FText::FromString(TEXT("Pick up")),
+					FText::FromString(FString::Printf(TEXT("%s x%d"), *ItemName, Pickup->ItemCount)));
+				return;
+			}
+
+			// ResourceNode
+			if (AResourceNode* ResNode = Cast<AResourceNode>(HitActor))
+			{
+				FString ResName = ResNode->ResourceName.IsEmpty()
+					? TEXT("Resource") : ResNode->ResourceName.ToString();
+				if (ResNode->IsAvailable())
+				{
+					HUD->ShowInteractionPrompt(
+						FText::FromString(TEXT("Harvest")),
+						FText::FromString(ResName));
+				}
+				else
+				{
+					HUD->ShowInteractionPrompt(
+						FText::FromString(TEXT("")),
+						FText::FromString(FString::Printf(TEXT("%s (depleted)"), *ResName)));
+				}
+				return;
+			}
+
+			// AnimalBase
+			if (AAnimalBase* Animal = Cast<AAnimalBase>(HitActor))
+			{
+				FString AnimalStr = Animal->AnimalName.ToString();
+				if (Animal->IsDead() && Animal->bHarvestable)
+				{
+					HUD->ShowInteractionPrompt(
+						FText::FromString(TEXT("Harvest")),
+						FText::FromString(AnimalStr));
+				}
+				else if (!Animal->IsDead())
+				{
+					HUD->ShowInteractionPrompt(
+						FText::FromString(TEXT("Attack")),
+						FText::FromString(AnimalStr));
+				}
+				return;
+			}
+
+			// IInteractableInterface (LootContainer etc.)
+			if (HitActor->GetClass()->ImplementsInterface(UInteractableInterface::StaticClass()))
+			{
+				HUD->ShowInteractionPrompt(
+					FText::FromString(TEXT("Interact")),
+					FText::FromString(HitActor->GetName()));
+				return;
+			}
+		}
+	}
+
+	// Nothing hit — hide prompt
+	HUD->HideInteractionPrompt();
 }

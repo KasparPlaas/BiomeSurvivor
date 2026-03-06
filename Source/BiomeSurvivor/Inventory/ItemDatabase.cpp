@@ -49,6 +49,32 @@ UItemDefinition* FItemDatabase::RegisterFood(FName ID, const FText& Name, const 
 	return Def;
 }
 
+UItemDefinition* FItemDatabase::RegisterToolWeapon(FName ID, const FText& Name, const FText& Desc,
+	EItemCategory Cat, float Weight, float Damage, float AttackSpeed, float Range,
+	float Durability, EEquipSlot Slot, EItemRarity Rarity)
+{
+	UItemDefinition* Def = NewObject<UItemDefinition>(GetTransientPackage(), *ID.ToString());
+	Def->ItemID = ID;
+	Def->DisplayName = Name;
+	Def->Description = Desc;
+	Def->Category = Cat;
+	Def->Rarity = Rarity;
+	Def->Weight = Weight;
+	Def->MaxStackSize = 1;
+	Def->bConsumable = false;
+	Def->bEquippable = true;
+	Def->EquipSlot = Slot;
+	Def->MaxDurability = Durability;
+	Def->CombatStats.BaseDamage = Damage;
+	Def->CombatStats.AttackSpeed = AttackSpeed;
+	Def->CombatStats.Range = Range;
+	Def->CombatStats.StaminaCost = 8.0f;
+	Def->AddToRoot();
+
+	Items.Add(ID, Def);
+	return Def;
+}
+
 void FItemDatabase::Initialize()
 {
 	if (bInitialized) return;
@@ -148,6 +174,44 @@ void FItemDatabase::Initialize()
 		Def->AddToRoot();
 		Items.Add(Def->ItemID, Def);
 	}
+
+	// ============ TOOLS ============
+	RegisterToolWeapon(FName("StoneAxe"),
+		FText::FromString(TEXT("Stone Axe")),
+		FText::FromString(TEXT("A crude stone axe. Good for chopping trees.")),
+		EItemCategory::Tool, 1.5f, 12.0f, 1.0f, 180.0f, 100.0f,
+		EEquipSlot::MainHand, EItemRarity::Common);
+
+	RegisterToolWeapon(FName("StonePickaxe"),
+		FText::FromString(TEXT("Stone Pickaxe")),
+		FText::FromString(TEXT("A primitive stone pickaxe. Mines rock efficiently.")),
+		EItemCategory::Tool, 1.8f, 10.0f, 0.9f, 180.0f, 100.0f,
+		EEquipSlot::MainHand, EItemRarity::Common);
+
+	// ============ WEAPONS ============
+	RegisterToolWeapon(FName("BoneKnife"),
+		FText::FromString(TEXT("Bone Knife")),
+		FText::FromString(TEXT("A sharp knife made from animal bone.")),
+		EItemCategory::Weapon, 0.5f, 15.0f, 1.4f, 120.0f, 80.0f,
+		EEquipSlot::MainHand, EItemRarity::Common);
+
+	RegisterToolWeapon(FName("WoodenSpear"),
+		FText::FromString(TEXT("Wooden Spear")),
+		FText::FromString(TEXT("A long spear tipped with flint. Keep enemies at range.")),
+		EItemCategory::Weapon, 1.2f, 18.0f, 0.8f, 250.0f, 60.0f,
+		EEquipSlot::MainHand, EItemRarity::Common);
+
+	RegisterToolWeapon(FName("WoodenShield"),
+		FText::FromString(TEXT("Wooden Shield")),
+		FText::FromString(TEXT("A rough wooden shield that blocks some damage.")),
+		EItemCategory::Weapon, 2.5f, 5.0f, 0.5f, 80.0f, 120.0f,
+		EEquipSlot::OffHand, EItemRarity::Common);
+
+	// ============ MISC ============
+	RegisterMaterial(FName("Torch"),
+		FText::FromString(TEXT("Torch")),
+		FText::FromString(TEXT("A wooden torch that provides light and warmth.")),
+		0.3f, 5, EItemRarity::Common);
 
 	bInitialized = true;
 	UE_LOG(LogBiomeSurvivor, Log, TEXT("Item database initialized with %d items"), Items.Num());

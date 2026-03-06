@@ -178,6 +178,9 @@ protected:
 	TObjectPtr<UInputAction> InventoryAction;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> CraftAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputAction> QuickBar1Action;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
@@ -203,6 +206,7 @@ protected:
 	void HandleDodge();
 	void HandlePause();
 	void HandleToggleInventory();
+	void HandleCraft();
 	void HandleQuickBar1();
 	void HandleQuickBar2();
 	void HandleQuickBar3();
@@ -210,6 +214,17 @@ protected:
 
 	/** Whether the player is currently sprinting. */
 	bool bIsSprinting = false;
+
+public:
+	/** Timer for damage flash feedback on the HUD. */
+	float DamageFlashTimer = 0.0f;
+
+protected:
+	/** Perform tick-based interaction prompt trace. */
+	void UpdateInteractionPrompt();
+
+	/** Give the player starter items on first spawn. */
+	void GiveStarterKit();
 
 public:
 	// ---- Visible Body Mesh (placeholder) ----

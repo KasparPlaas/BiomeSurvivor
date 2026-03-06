@@ -1,9 +1,9 @@
 // Copyright Biome Survivor. All Rights Reserved.
 
 #include "Crafting/CraftingComponent.h"
+#include "Crafting/RecipeDatabase.h"
 #include "Inventory/InventoryComponent.h"
 #include "BiomeSurvivor.h"
-#include "Engine/AssetManager.h"
 
 UCraftingComponent::UCraftingComponent()
 {
@@ -16,10 +16,25 @@ void UCraftingComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Start with all basic (non-unlock) recipes known
-	// In a full game, recipe definitions would be loaded from AssetManager
-	// For now, recipes that don't require unlocking are automatically available
-	UE_LOG(LogBiomeSurvivor, Log, TEXT("CraftingComponent initialized on %s"), *GetOwner()->GetName());
+	// Initialize runtime recipe database
+	FRecipeDatabase::Initialize();
+
+	// Auto-learn all basic (non-unlock) recipes
+	TArray<FName> AllRecipes = FRecipeDatabase::GetAllRecipeIDs();
+	for (const FName& ID : AllRecipes)
+	{
+		const UCraftingRecipe* Recipe = FRecipeDatabase::Get(ID);
+		if (Recipe && !Recipe->bRequiresUnlock)
+		{
+			if (!KnownRecipes.Contains(ID))
+			{
+				KnownRecipes.Add(ID);
+			}
+		}
+	}
+
+	UE_LOG(LogBiomeSurvivor, Log, TEXT("CraftingComponent initialized on %s with %d known recipes"),
+		*GetOwner()->GetName(), KnownRecipes.Num());
 }
 
 void UCraftingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -212,16 +227,8 @@ const UCraftingRecipe* UCraftingComponent::GetRecipeDefinition(FName RecipeID)
 {
 	if (RecipeID.IsNone()) return nullptr;
 
-	UAssetManager& Manager = UAssetManager::Get();
-	FPrimaryAssetId AssetId("CraftingRecipe", RecipeID);
-	FSoftObjectPath Path = Manager.GetPrimaryAssetPath(AssetId);
-
-	if (Path.IsValid())
-	{
-		return Cast<UCraftingRecipe>(Path.TryLoad());
-	}
-
-	return nullptr;
+	// Use runtime recipe database
+	return FRecipeDatabase::Get(RecipeID);
 }
 
 bool UCraftingComponent::ConsumeIngredients(const UCraftingRecipe* Recipe)

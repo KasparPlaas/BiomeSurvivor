@@ -5,6 +5,9 @@
 #include "Player/PlayerStatsComponent.h"
 #include "Inventory/InventoryComponent.h"
 #include "Inventory/ItemDatabase.h"
+#include "Crafting/CraftingComponent.h"
+#include "Crafting/RecipeDatabase.h"
+#include "Crafting/CraftingRecipe.h"
 #include "BiomeSurvivor.h"
 
 // Slate includes
@@ -88,6 +91,24 @@ void ASurvivorHUD::Tick(float DeltaTime)
 		DisplayStamina = FMath::FInterpTo(DisplayStamina, Stats->GetStaminaPercent(), DeltaTime, InterpSpeed);
 	}
 
+	// Damage flash decay
+	if (DamageFlashAlpha > 0.0f)
+	{
+		DamageFlashAlpha = FMath::FInterpTo(DamageFlashAlpha, 0.0f, DeltaTime, 5.0f);
+	}
+
+	// Sync damage flash from character
+	if (APlayerController* PC = GetOwningPlayerController())
+	{
+		if (ASurvivorCharacter* Character = Cast<ASurvivorCharacter>(PC->GetPawn()))
+		{
+			if (Character->DamageFlashTimer > 0.0f)
+			{
+				DamageFlashAlpha = FMath::Max(DamageFlashAlpha, 0.35f);
+			}
+		}
+	}
+
 	// Tick notifications
 	for (int32 i = ActiveNotifications.Num() - 1; i >= 0; --i)
 	{
@@ -113,10 +134,16 @@ void ASurvivorHUD::DrawHUD()
 	DrawCompass();
 	DrawInteractionPromptHUD();
 	DrawNotifications();
+	DrawDamageFlash();
 
 	if (bInventoryVisible)
 	{
 		DrawInventoryGrid();
+	}
+
+	if (bCraftingVisible)
+	{
+		DrawCraftingMenu();
 	}
 
 	if (bDeathScreenVisible)
@@ -833,7 +860,7 @@ void ASurvivorHUD::ShowNotification(const FText& Message, float Duration)
 
 bool ASurvivorHUD::IsAnyMenuOpen() const
 {
-	return bMainMenuVisible || bPauseMenuVisible || bDeathScreenVisible || bInventoryVisible;
+	return bMainMenuVisible || bPauseMenuVisible || bDeathScreenVisible || bInventoryVisible || bCraftingVisible;
 }
 
 UPlayerStatsComponent* ASurvivorHUD::GetPlayerStats() const
@@ -1025,4 +1052,227 @@ void ASurvivorHUD::HideInventory()
 		PC->SetInputMode(InputMode);
 		PC->SetShowMouseCursor(false);
 	}
+}
+
+// ==================================================================
+// Crafting Menu
+// ==================================================================
+
+void ASurvivorHUD::ToggleCraftingMenu()
+{
+	if (bMainMenuVisible) return;
+
+	if (bCraftingVisible)
+	{
+		HideCraftingMenu();
+	}
+	else
+	{
+		ShowCraftingMenu();
+	}
+}
+
+void ASurvivorHUD::ShowCraftingMenu()
+{
+	bCraftingVisible = true;
+	SelectedCraftingRecipe = 0;
+	CraftingScrollOffset = 0;
+	if (APlayerController* PC = GetOwningPlayerController())
+	{
+		FInputModeGameAndUI InputMode;
+		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		PC->SetInputMode(InputMode);
+		PC->SetShowMouseCursor(true);
+	}
+}
+
+void ASurvivorHUD::HideCraftingMenu()
+{
+	bCraftingVisible = false;
+	if (APlayerController* PC = GetOwningPlayerController())
+	{
+		FInputModeGameOnly InputMode;
+		PC->SetInputMode(InputMode);
+		PC->SetShowMouseCursor(false);
+	}
+}
+
+void ASurvivorHUD::DrawCraftingMenu()
+{
+	UCraftingComponent* CraftComp = GetPlayerCrafting();
+	UInventoryComponent* Inventory = GetPlayerInventory();
+	if (!CraftComp || !Inventory) return;
+
+	UFont* Font = GEngine ? GEngine->GetSmallFont() : nullptr;
+	UFont* MedFont = GEngine ? GEngine->GetMediumFont() : nullptr;
+	if (!Font || !MedFont) return;
+
+	// Get all known recipes
+	TArray<FName> KnownRecipes = CraftComp->GetKnownRecipes();
+	if (KnownRecipes.Num() == 0)
+	{
+		// Fallback: show all recipes from database
+		KnownRecipes = FRecipeDatabase::GetAllRecipeIDs();
+	}
+
+	const float PanelW = 420.0f;
+	const float PanelH = 450.0f;
+	const float PanelX = (Canvas->SizeX - PanelW) * 0.5f;
+	const float PanelY = (Canvas->SizeY - PanelH) * 0.5f;
+
+	// Background
+	DrawRect(FLinearColor(0.03f, 0.03f, 0.05f, 0.92f), PanelX, PanelY, PanelW, PanelH);
+
+	// Border
+	const FLinearColor BorderCol(0.4f, 0.35f, 0.25f, 0.8f);
+	DrawLine(PanelX, PanelY, PanelX + PanelW, PanelY, BorderCol, 2.0f);
+	DrawLine(PanelX, PanelY + PanelH, PanelX + PanelW, PanelY + PanelH, BorderCol, 2.0f);
+	DrawLine(PanelX, PanelY, PanelX, PanelY + PanelH, BorderCol, 2.0f);
+	DrawLine(PanelX + PanelW, PanelY, PanelX + PanelW, PanelY + PanelH, BorderCol, 2.0f);
+
+	// Title
+	const FString Title = TEXT("CRAFTING");
+	float TW = 0, TH = 0;
+	GetTextSize(Title, TW, TH, MedFont, 1.5f);
+	DrawText(Title, FLinearColor(0.88f, 0.82f, 0.65f),
+		PanelX + (PanelW - TW) * 0.5f, PanelY + 10.0f, MedFont, 1.5f);
+
+	// Crafting in progress indicator
+	if (CraftComp->IsCrafting())
+	{
+		const auto& Queue = CraftComp->GetCraftingQueue();
+		if (Queue.Num() > 0)
+		{
+			const FCraftingQueueEntry& Current = Queue[0];
+			const UCraftingRecipe* CurRecipe = FRecipeDatabase::Get(Current.RecipeID);
+			FString ProgressStr = FString::Printf(TEXT("Crafting: %s  [%.0f%%]"),
+				CurRecipe ? *CurRecipe->DisplayName.ToString() : *Current.RecipeID.ToString(),
+				Current.GetProgress() * 100.0f);
+			float PW = 0, PH = 0;
+			GetTextSize(ProgressStr, PW, PH, Font, 1.0f);
+
+			// Progress bar
+			float BarX = PanelX + 20.0f;
+			float BarY = PanelY + 42.0f;
+			float BarW = PanelW - 40.0f;
+			DrawRect(FLinearColor(0.08f, 0.08f, 0.1f), BarX, BarY, BarW, 16.0f);
+			DrawRect(FLinearColor(0.3f, 0.7f, 0.3f, 0.8f), BarX, BarY, BarW * Current.GetProgress(), 16.0f);
+			DrawText(ProgressStr, FLinearColor(0.9f, 0.9f, 0.8f), BarX + 4.0f, BarY, Font, 0.85f);
+		}
+	}
+
+	// Recipe list
+	const float ListY = PanelY + 68.0f;
+	const float RowH = 28.0f;
+	const int32 MaxVisible = 12;
+
+	// Clamp selection
+	if (SelectedCraftingRecipe >= KnownRecipes.Num()) SelectedCraftingRecipe = KnownRecipes.Num() - 1;
+	if (SelectedCraftingRecipe < 0) SelectedCraftingRecipe = 0;
+
+	for (int32 i = 0; i < MaxVisible && (i + CraftingScrollOffset) < KnownRecipes.Num(); ++i)
+	{
+		int32 RecipeIdx = i + CraftingScrollOffset;
+		FName RecipeID = KnownRecipes[RecipeIdx];
+		const UCraftingRecipe* Recipe = FRecipeDatabase::Get(RecipeID);
+		if (!Recipe) continue;
+
+		float RowY = ListY + i * RowH;
+		bool bSelected = (RecipeIdx == SelectedCraftingRecipe);
+		bool bCanCraft = CraftComp->HasIngredients(RecipeID);
+
+		// Row background
+		FLinearColor RowBg = bSelected
+			? FLinearColor(0.15f, 0.15f, 0.22f, 0.9f)
+			: FLinearColor(0.06f, 0.06f, 0.08f, 0.6f);
+		DrawRect(RowBg, PanelX + 10.0f, RowY, PanelW - 20.0f, RowH - 2.0f);
+
+		// Recipe name
+		FLinearColor NameColor = bCanCraft
+			? FLinearColor(0.9f, 0.85f, 0.7f)
+			: FLinearColor(0.5f, 0.4f, 0.4f);
+		
+		FString RecipeName = Recipe->DisplayName.ToString();
+		FString OutputStr = FString::Printf(TEXT(" x%d"), Recipe->OutputCount);
+		if (Recipe->OutputCount <= 1) OutputStr = TEXT("");
+		DrawText(RecipeName + OutputStr, NameColor, PanelX + 18.0f, RowY + 4.0f, Font, 1.0f);
+
+		// Category tag
+		FString CatStr;
+		switch (Recipe->Category)
+		{
+		case ECraftingCategory::Cooking: CatStr = TEXT("[Fire]"); break;
+		case ECraftingCategory::Workbench: CatStr = TEXT("[Bench]"); break;
+		case ECraftingCategory::Forge: CatStr = TEXT("[Forge]"); break;
+		default: CatStr = TEXT("[Hand]"); break;
+		}
+		DrawText(CatStr, FLinearColor(0.5f, 0.5f, 0.5f, 0.7f),
+			PanelX + PanelW - 75.0f, RowY + 4.0f, Font, 0.8f);
+	}
+
+	// Selected recipe details
+	if (KnownRecipes.IsValidIndex(SelectedCraftingRecipe))
+	{
+		const UCraftingRecipe* SelRecipe = FRecipeDatabase::Get(KnownRecipes[SelectedCraftingRecipe]);
+		if (SelRecipe)
+		{
+			float DetailY = ListY + MaxVisible * RowH + 10.0f;
+
+			// Separator
+			DrawLine(PanelX + 15.0f, DetailY, PanelX + PanelW - 15.0f, DetailY,
+				FLinearColor(0.3f, 0.3f, 0.3f, 0.5f));
+			DetailY += 8.0f;
+
+			// Ingredients
+			DrawText(TEXT("Ingredients:"), FLinearColor(0.7f, 0.7f, 0.6f),
+				PanelX + 18.0f, DetailY, Font, 1.0f);
+			DetailY += 18.0f;
+
+			for (const FCraftingIngredient& Ing : SelRecipe->Ingredients)
+			{
+				FString IngName = FItemDatabase::GetDisplayName(Ing.ItemID).ToString();
+				int32 HaveCount = Inventory->GetItemCount(Ing.ItemID);
+				bool bHaveEnough = HaveCount >= Ing.Count;
+
+				FLinearColor IngColor = bHaveEnough
+					? FLinearColor(0.5f, 0.85f, 0.5f)
+					: FLinearColor(0.85f, 0.3f, 0.3f);
+
+				FString IngStr = FString::Printf(TEXT("  %s  %d/%d"), *IngName, HaveCount, Ing.Count);
+				DrawText(IngStr, IngColor, PanelX + 22.0f, DetailY, Font, 0.9f);
+				DetailY += 16.0f;
+			}
+
+			// Craft time
+			FString TimeStr = FString::Printf(TEXT("Time: %.1fs"), SelRecipe->CraftingTime);
+			DrawText(TimeStr, FLinearColor(0.6f, 0.6f, 0.6f),
+				PanelX + 18.0f, DetailY + 4.0f, Font, 0.85f);
+		}
+	}
+
+	// Instructions at bottom
+	FString Instructions = TEXT("[C] Close  |  [Up/Down] Select  |  [E] Craft");
+	float IW = 0, IH = 0;
+	GetTextSize(Instructions, IW, IH, Font, 1.0f);
+	DrawText(Instructions, FLinearColor(0.5f, 0.5f, 0.5f, 0.7f),
+		PanelX + (PanelW - IW) * 0.5f, PanelY + PanelH - 20.0f, Font, 1.0f);
+}
+
+void ASurvivorHUD::DrawDamageFlash()
+{
+	if (DamageFlashAlpha <= 0.01f) return;
+
+	DrawRect(FLinearColor(0.8f, 0.0f, 0.0f, DamageFlashAlpha),
+		0, 0, Canvas->SizeX, Canvas->SizeY);
+}
+
+UCraftingComponent* ASurvivorHUD::GetPlayerCrafting() const
+{
+	APlayerController* PC = GetOwningPlayerController();
+	if (!PC) return nullptr;
+
+	ASurvivorCharacter* Character = Cast<ASurvivorCharacter>(PC->GetPawn());
+	if (!Character) return nullptr;
+
+	return Character->CraftingComponent;
 }

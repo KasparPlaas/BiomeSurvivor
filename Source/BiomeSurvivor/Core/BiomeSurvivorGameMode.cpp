@@ -106,7 +106,27 @@ void ABiomeSurvivorGameMode::HandleRespawn(APlayerController* PlayerController)
 	if (!PlayerController) return;
 
 	PendingRespawns.Remove(PlayerController);
+
+	// Destroy old pawn if it exists (dead body cleanup)
+	if (APawn* OldPawn = PlayerController->GetPawn())
+	{
+		PlayerController->UnPossess();
+		OldPawn->Destroy();
+	}
+
+	// Spawn new pawn
 	RestartPlayer(PlayerController);
+
+	// Hide death screen on new HUD
+	if (ASurvivorHUD* HUD = Cast<ASurvivorHUD>(PlayerController->GetHUD()))
+	{
+		HUD->HideDeathScreen();
+	}
+
+	// Reset input mode to game
+	FInputModeGameOnly InputMode;
+	PlayerController->SetInputMode(InputMode);
+	PlayerController->SetShowMouseCursor(false);
 
 	UE_LOG(LogBiomeSurvivor, Log, TEXT("Player respawned: %s"), *PlayerController->GetName());
 }
@@ -196,7 +216,7 @@ void ABiomeSurvivorGameMode::SpawnWorldResources()
 	const float TerrainHalf = 15000.0f; // Terrain radius
 	FRandomStream Rand(42); // Deterministic seed
 
-	for (int32 i = 0; i < 20; ++i)
+	for (int32 i = 0; i < 40; ++i)
 	{
 		FVector Pos(
 			Rand.FRandRange(-TerrainHalf, TerrainHalf),
@@ -208,7 +228,7 @@ void ABiomeSurvivorGameMode::SpawnWorldResources()
 	}
 
 	// ---- ROCKS ----
-	for (int32 i = 0; i < 12; ++i)
+	for (int32 i = 0; i < 25; ++i)
 	{
 		FVector Pos(
 			Rand.FRandRange(-TerrainHalf, TerrainHalf),
@@ -220,11 +240,11 @@ void ABiomeSurvivorGameMode::SpawnWorldResources()
 	}
 
 	// ---- BERRY BUSHES ----
-	for (int32 i = 0; i < 8; ++i)
+	for (int32 i = 0; i < 15; ++i)
 	{
 		FVector Pos(
-			Rand.FRandRange(-TerrainHalf * 0.5f, TerrainHalf * 0.5f),
-			Rand.FRandRange(-TerrainHalf * 0.5f, TerrainHalf * 0.5f),
+			Rand.FRandRange(-TerrainHalf * 0.6f, TerrainHalf * 0.6f),
+			Rand.FRandRange(-TerrainHalf * 0.6f, TerrainHalf * 0.6f),
 			50.0f
 		);
 		SpawnResource(Pos, EResourceNodeType::BerryBush, FText::FromString(TEXT("Berry Bush")),
@@ -232,7 +252,7 @@ void ABiomeSurvivorGameMode::SpawnWorldResources()
 	}
 
 	// ---- FIBER PLANTS ----
-	for (int32 i = 0; i < 6; ++i)
+	for (int32 i = 0; i < 12; ++i)
 	{
 		FVector Pos(
 			Rand.FRandRange(-TerrainHalf * 0.7f, TerrainHalf * 0.7f),
@@ -243,7 +263,70 @@ void ABiomeSurvivorGameMode::SpawnWorldResources()
 			20.0f, FName("Fiber"), 2, 2, 90.0f);
 	}
 
-	UE_LOG(LogBiomeSurvivor, Log, TEXT("Spawned world resources: 20 trees, 12 rocks, 8 bushes, 6 fiber"));
+	// ---- MUSHROOMS (use FiberPlant type visually, drop Mushroom) ----
+	for (int32 i = 0; i < 8; ++i)
+	{
+		FVector Pos(
+			Rand.FRandRange(-TerrainHalf * 0.5f, TerrainHalf * 0.5f),
+			Rand.FRandRange(-TerrainHalf * 0.5f, TerrainHalf * 0.5f),
+			50.0f
+		);
+		SpawnResource(Pos, EResourceNodeType::FiberPlant, FText::FromString(TEXT("Wild Mushroom")),
+			10.0f, FName("Mushroom"), 1, 2, 180.0f);
+	}
+
+	// ---- FLINT DEPOSITS (Rock type, drops Flint) ----
+	for (int32 i = 0; i < 6; ++i)
+	{
+		FVector Pos(
+			Rand.FRandRange(-TerrainHalf * 0.8f, TerrainHalf * 0.8f),
+			Rand.FRandRange(-TerrainHalf * 0.8f, TerrainHalf * 0.8f),
+			50.0f
+		);
+		SpawnResource(Pos, EResourceNodeType::Rock, FText::FromString(TEXT("Flint Deposit")),
+			100.0f, FName("Flint"), 1, 2, 900.0f);
+	}
+
+	// ---- WATER SOURCE (BerryBush type visually, drops DirtyWater) ----
+	for (int32 i = 0; i < 4; ++i)
+	{
+		FVector Pos(
+			Rand.FRandRange(-TerrainHalf * 0.4f, TerrainHalf * 0.4f),
+			Rand.FRandRange(-TerrainHalf * 0.4f, TerrainHalf * 0.4f),
+			30.0f
+		);
+		SpawnResource(Pos, EResourceNodeType::BerryBush, FText::FromString(TEXT("Water Source")),
+			9999.0f, FName("DirtyWater"), 1, 1, 30.0f);
+	}
+
+	// ---- STARTER AREA: Dense resources near spawn (origin) ----
+	// 3 trees, 2 rocks, 2 bushes, 2 fiber: all within 1500cm of origin
+	for (int32 i = 0; i < 3; ++i)
+	{
+		FVector Pos(Rand.FRandRange(-1500.f, 1500.f), Rand.FRandRange(-1500.f, 1500.f), 100.0f);
+		SpawnResource(Pos, EResourceNodeType::Tree, FText::FromString(TEXT("Pine Tree")),
+			150.0f, FName("Wood"), 2, 2, 300.0f);
+	}
+	for (int32 i = 0; i < 2; ++i)
+	{
+		FVector Pos(Rand.FRandRange(-1200.f, 1200.f), Rand.FRandRange(-1200.f, 1200.f), 50.0f);
+		SpawnResource(Pos, EResourceNodeType::Rock, FText::FromString(TEXT("Stone Boulder")),
+			200.0f, FName("Stone"), 1, 2, 600.0f);
+	}
+	for (int32 i = 0; i < 2; ++i)
+	{
+		FVector Pos(Rand.FRandRange(-1000.f, 1000.f), Rand.FRandRange(-1000.f, 1000.f), 50.0f);
+		SpawnResource(Pos, EResourceNodeType::BerryBush, FText::FromString(TEXT("Berry Bush")),
+			30.0f, FName("Berries"), 3, 3, 120.0f);
+	}
+	for (int32 i = 0; i < 2; ++i)
+	{
+		FVector Pos(Rand.FRandRange(-1000.f, 1000.f), Rand.FRandRange(-1000.f, 1000.f), 50.0f);
+		SpawnResource(Pos, EResourceNodeType::FiberPlant, FText::FromString(TEXT("Fiber Plant")),
+			20.0f, FName("Fiber"), 2, 2, 90.0f);
+	}
+
+	UE_LOG(LogBiomeSurvivor, Log, TEXT("Spawned world resources: 43 trees, 31 rocks, 17 bushes, 14 fiber, 8 mushrooms, 6 flint, 4 water sources + starter area"));
 }
 
 void ABiomeSurvivorGameMode::SpawnWildlife()
@@ -294,7 +377,7 @@ void ABiomeSurvivorGameMode::SpawnWildlife()
 	FRandomStream Rand(123);
 
 	// ---- DEER (passive, flee from player) ----
-	for (int32 i = 0; i < 6; ++i)
+	for (int32 i = 0; i < 10; ++i)
 	{
 		FVector Pos(
 			Rand.FRandRange(-TerrainHalf * 0.8f, TerrainHalf * 0.8f),
@@ -307,7 +390,7 @@ void ABiomeSurvivorGameMode::SpawnWildlife()
 	}
 
 	// ---- WOLVES (aggressive, hunt player) ----
-	for (int32 i = 0; i < 3; ++i)
+	for (int32 i = 0; i < 5; ++i)
 	{
 		FVector Pos(
 			Rand.FRandRange(-TerrainHalf * 0.6f, TerrainHalf * 0.6f),
@@ -320,7 +403,7 @@ void ABiomeSurvivorGameMode::SpawnWildlife()
 	}
 
 	// ---- RABBITS (passive, flee quickly) ----
-	for (int32 i = 0; i < 5; ++i)
+	for (int32 i = 0; i < 8; ++i)
 	{
 		FVector Pos(
 			Rand.FRandRange(-TerrainHalf * 0.7f, TerrainHalf * 0.7f),
@@ -333,7 +416,7 @@ void ABiomeSurvivorGameMode::SpawnWildlife()
 	}
 
 	// ---- BOARS (territorial) ----
-	for (int32 i = 0; i < 3; ++i)
+	for (int32 i = 0; i < 5; ++i)
 	{
 		FVector Pos(
 			Rand.FRandRange(-TerrainHalf * 0.5f, TerrainHalf * 0.5f),
@@ -345,7 +428,7 @@ void ABiomeSurvivorGameMode::SpawnWildlife()
 			FName("RawMeat"), 2, 3);
 	}
 
-	UE_LOG(LogBiomeSurvivor, Log, TEXT("Spawned wildlife: 6 deer, 3 wolves, 5 rabbits, 3 boars"));
+	UE_LOG(LogBiomeSurvivor, Log, TEXT("Spawned wildlife: 10 deer, 5 wolves, 8 rabbits, 5 boars"));
 }
 
 void ABiomeSurvivorGameMode::SpawnLootContainers()
@@ -375,7 +458,11 @@ void ABiomeSurvivorGameMode::SpawnLootContainers()
 			{
 				// Add random survival supplies
 				int32 NumItems = Rand.RandRange(2, 5);
-				TArray<FName> PossibleItems = { FName("Wood"), FName("Stone"), FName("Berries"), FName("Fiber"), FName("Bandage") };
+				TArray<FName> PossibleItems = {
+					FName("Wood"), FName("Stone"), FName("Berries"), FName("Fiber"),
+					FName("Bandage"), FName("Flint"), FName("Rope"), FName("RawMeat"),
+					FName("DirtyWater"), FName("Mushroom"), FName("Bone")
+				};
 				for (int32 i = 0; i < NumItems; ++i)
 				{
 					FName ItemID = PossibleItems[Rand.RandRange(0, PossibleItems.Num() - 1)];
@@ -387,8 +474,8 @@ void ABiomeSurvivorGameMode::SpawnLootContainers()
 		return Container;
 	};
 
-	// Spawn 5 loot containers scattered around the world
-	for (int32 i = 0; i < 5; ++i)
+	// Spawn 8 loot containers scattered around the world
+	for (int32 i = 0; i < 8; ++i)
 	{
 		FVector Pos(
 			Rand.FRandRange(-TerrainHalf * 0.6f, TerrainHalf * 0.6f),
@@ -404,5 +491,5 @@ void ABiomeSurvivorGameMode::SpawnLootContainers()
 		SpawnContainer(Pos, Type, Name, 8);
 	}
 
-	UE_LOG(LogBiomeSurvivor, Log, TEXT("Spawned 5 loot containers"));
+	UE_LOG(LogBiomeSurvivor, Log, TEXT("Spawned 8 loot containers"));
 }

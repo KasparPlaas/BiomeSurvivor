@@ -8,6 +8,7 @@
 
 class UPlayerStatsComponent;
 class UInventoryComponent;
+class UCraftingComponent;
 
 /**
  * ASurvivorHUD
@@ -70,6 +71,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void HideInventory();
 
+	// ---- Crafting ----
+
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void ToggleCraftingMenu();
+
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void ShowCraftingMenu();
+
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void HideCraftingMenu();
+
 	// ---- HUD Prompts ----
 
 	UFUNCTION(BlueprintCallable, Category = "UI")
@@ -97,6 +109,13 @@ public:
 	bool bPauseMenuVisible = false;
 	bool bDeathScreenVisible = false;
 	bool bInventoryVisible = false;
+	bool bCraftingVisible = false;
+
+	/** Selected inventory slot for use/drop (-1 = none) */
+	int32 SelectedInventorySlot = -1;
+
+	/** Damage flash alpha (set by character on TakeDamage) */
+	float DamageFlashAlpha = 0.0f;
 
 protected:
 	// ---- Canvas HUD Drawing ----
@@ -108,6 +127,8 @@ protected:
 	void DrawDeathOverlay();
 	void DrawQuickBar();
 	void DrawInventoryGrid();
+	void DrawCraftingMenu();
+	void DrawDamageFlash();
 
 	/** Draw a single horizontal stat bar with label and value text. */
 	void DrawStatBar(float X, float Y, float Width, float Height, float Percent,
@@ -118,6 +139,13 @@ protected:
 
 	/** Retrieve the player's inventory component. */
 	UInventoryComponent* GetPlayerInventory() const;
+
+	/** Retrieve the player's crafting component. */
+	UCraftingComponent* GetPlayerCrafting() const;
+
+	/** Crafting scroll offset for recipe list. */
+	int32 CraftingScrollOffset = 0;
+	int32 SelectedCraftingRecipe = 0;
 
 	// ---- Interaction Prompt ----
 	bool bShowInteraction = false;

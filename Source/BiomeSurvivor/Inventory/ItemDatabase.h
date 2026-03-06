@@ -40,6 +40,12 @@ private:
 		float Weight, int32 MaxStack, float HungerRestore, float ThirstRestore, float HealthRestore,
 		float PoisonChance = 0.0f, EItemRarity Rarity = EItemRarity::Common);
 
+	/** Create and register a tool/weapon item */
+	static UItemDefinition* RegisterToolWeapon(FName ID, const FText& Name, const FText& Desc,
+		EItemCategory Cat, float Weight, float Damage, float AttackSpeed, float Range,
+		float Durability, EEquipSlot Slot = EEquipSlot::MainHand,
+		EItemRarity Rarity = EItemRarity::Common);
+
 	static TMap<FName, UItemDefinition*> Items;
 	static bool bInitialized;
 };
