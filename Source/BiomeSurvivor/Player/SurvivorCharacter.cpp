@@ -12,12 +12,14 @@
 #include "Survival/NutritionComponent.h"
 #include "Survival/MedicalComponent.h"
 #include "Survival/SleepComponent.h"
+#include "UI/SurvivorHUD.h"
 #include "BiomeSurvivor.h"
 
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputAction.h"
@@ -37,7 +39,7 @@ static UInputAction* CreateRuntimeInputAction(const FName& Name, EInputActionVal
 static UInputMappingContext* CreateDefaultMappingContext(
 	UInputAction* Move, UInputAction* Look, UInputAction* Jump, UInputAction* Sprint,
 	UInputAction* Crouch, UInputAction* Interact, UInputAction* Attack, UInputAction* Block,
-	UInputAction* Dodge, UInputAction* ToggleCamera)
+	UInputAction* Dodge, UInputAction* ToggleCamera, UInputAction* Pause, UInputAction* Inventory)
 {
 	UInputMappingContext* IMC = NewObject<UInputMappingContext>(GetTransientPackage(), TEXT("IMC_DefaultRuntime"));
 
@@ -92,6 +94,12 @@ static UInputMappingContext* CreateDefaultMappingContext(
 	// V -> Toggle Camera
 	IMC->MapKey(ToggleCamera, EKeys::V);
 
+	// Escape -> Pause
+	IMC->MapKey(Pause, EKeys::Escape);
+
+	// Tab -> Inventory
+	IMC->MapKey(Inventory, EKeys::Tab);
+
 	return IMC;
 }
 
@@ -135,6 +143,33 @@ ASurvivorCharacter::ASurvivorCharacter()
 	MoveComp->bOrientRotationToMovement = true;
 	MoveComp->RotationRate = FRotator(0.0f, 540.0f, 0.0f);
 
+	// ---- Visible Body (placeholder shapes) ----
+	BodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BodyMesh"));
+	BodyMesh->SetupAttachment(GetCapsuleComponent());
+	BodyMesh->SetRelativeLocation(FVector(0.0f, 0.0f, -15.0f));
+	BodyMesh->SetRelativeScale3D(FVector(0.7f, 0.7f, 1.3f));
+	BodyMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	BodyMesh->CastShadow = true;
+
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> CylinderFinder(TEXT("/Engine/BasicShapes/Cylinder"));
+	if (CylinderFinder.Succeeded())
+	{
+		BodyMesh->SetStaticMesh(CylinderFinder.Object);
+	}
+
+	HeadMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HeadMesh"));
+	HeadMesh->SetupAttachment(GetCapsuleComponent());
+	HeadMesh->SetRelativeLocation(FVector(0.0f, 0.0f, 72.0f));
+	HeadMesh->SetRelativeScale3D(FVector(0.35f, 0.35f, 0.35f));
+	HeadMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	HeadMesh->CastShadow = true;
+
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereFinder(TEXT("/Engine/BasicShapes/Sphere"));
+	if (SphereFinder.Succeeded())
+	{
+		HeadMesh->SetStaticMesh(SphereFinder.Object);
+	}
+
 	// ---- Gameplay Components ----
 	StatsComponent = CreateDefaultSubobject<UPlayerStatsComponent>(TEXT("PlayerStats"));
 	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
@@ -169,6 +204,8 @@ void ASurvivorCharacter::BeginPlay()
 	if (!BlockAction)  BlockAction  = CreateRuntimeInputAction(TEXT("IA_Block"),  EInputActionValueType::Boolean);
 	if (!DodgeAction)  DodgeAction  = CreateRuntimeInputAction(TEXT("IA_Dodge"),  EInputActionValueType::Boolean);
 	if (!ToggleCameraAction) ToggleCameraAction = CreateRuntimeInputAction(TEXT("IA_ToggleCamera"), EInputActionValueType::Boolean);
+	if (!PauseAction) PauseAction = CreateRuntimeInputAction(TEXT("IA_Pause"), EInputActionValueType::Boolean);
+	if (!InventoryAction) InventoryAction = CreateRuntimeInputAction(TEXT("IA_Inventory"), EInputActionValueType::Boolean);
 
 	// Create and register default input mapping context
 	if (APlayerController* PC = Cast<APlayerController>(GetController()))
@@ -177,7 +214,8 @@ void ASurvivorCharacter::BeginPlay()
 		{
 			UInputMappingContext* DefaultIMC = CreateDefaultMappingContext(
 				MoveAction, LookAction, JumpAction, SprintAction, CrouchAction,
-				InteractAction, AttackAction, BlockAction, DodgeAction, ToggleCameraAction);
+				InteractAction, AttackAction, BlockAction, DodgeAction, ToggleCameraAction,
+				PauseAction, InventoryAction);
 			Subsystem->AddMappingContext(DefaultIMC, 0);
 
 			UE_LOG(LogBiomeSurvivor, Log, TEXT("Runtime input mapping context registered"));
@@ -235,6 +273,10 @@ void ASurvivorCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 			EnhancedInput->BindAction(DodgeAction, ETriggerEvent::Started, this, &ASurvivorCharacter::HandleDodge);
 		if (ToggleCameraAction)
 			EnhancedInput->BindAction(ToggleCameraAction, ETriggerEvent::Started, this, &ASurvivorCharacter::ToggleCameraView);
+		if (PauseAction)
+			EnhancedInput->BindAction(PauseAction, ETriggerEvent::Started, this, &ASurvivorCharacter::HandlePause);
+		if (InventoryAction)
+			EnhancedInput->BindAction(InventoryAction, ETriggerEvent::Started, this, &ASurvivorCharacter::HandleToggleInventory);
 	}
 }
 
@@ -424,4 +466,34 @@ void ASurvivorCharacter::Die()
 	// TODO: Drop inventory items on ground
 	// TODO: Play death animation
 	// TODO: Trigger respawn via GameMode
+}
+
+// ============ MENU HANDLERS ============
+
+void ASurvivorCharacter::HandlePause()
+{
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (!PC) return;
+
+	AHUD* HUDBase = PC->GetHUD();
+	if (!HUDBase) return;
+
+	// Forward to SurvivorHUD via reflection-free cast
+	if (ASurvivorHUD* HUD = Cast<ASurvivorHUD>(HUDBase))
+	{
+		HUD->TogglePauseMenu();
+	}
+}
+
+void ASurvivorCharacter::HandleToggleInventory()
+{
+	if (bIsDead) return;
+
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (!PC) return;
+
+	if (ASurvivorHUD* HUD = Cast<ASurvivorHUD>(PC->GetHUD()))
+	{
+		HUD->ShowNotification(FText::FromString(TEXT("Inventory coming soon...")), 2.0f);
+	}
 }

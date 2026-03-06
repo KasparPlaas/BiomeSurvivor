@@ -6,13 +6,20 @@
 #include "GameFramework/HUD.h"
 #include "SurvivorHUD.generated.h"
 
-class USurvivorMainWidget;
+class UPlayerStatsComponent;
 
 /**
- * Main HUD class for the survival game.
- * Manages all UI widgets and their visibility states.
+ * ASurvivorHUD
+ *
+ * Full game HUD with:
+ * - Canvas-drawn gameplay HUD (stat bars, crosshair, compass, interaction prompts)
+ * - Slate main menu overlay
+ * - Slate pause menu overlay
+ * - Death screen overlay
+ *
+ * All rendered programmatically - no Blueprint widget dependencies.
  */
-UCLASS(BlueprintType, Blueprintable)
+UCLASS()
 class BIOMESURVIVOR_API ASurvivorHUD : public AHUD
 {
 	GENERATED_BODY()
@@ -21,35 +28,20 @@ public:
 	ASurvivorHUD();
 
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void DrawHUD() override;
+	virtual void Tick(float DeltaTime) override;
 
-	/** Widget class references (set in Blueprint subclass) */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
-	TSubclassOf<UUserWidget> MainWidgetClass;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
-	TSubclassOf<UUserWidget> InventoryWidgetClass;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
-	TSubclassOf<UUserWidget> CraftingWidgetClass;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
-	TSubclassOf<UUserWidget> MapWidgetClass;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
-	TSubclassOf<UUserWidget> PauseMenuWidgetClass;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
-	TSubclassOf<UUserWidget> DeathScreenWidgetClass;
-
-	/** Toggle specific UI panels */
-	UFUNCTION(BlueprintCallable, Category = "UI")
-	void ToggleInventory();
+	// ---- Menu Control ----
 
 	UFUNCTION(BlueprintCallable, Category = "UI")
-	void ToggleCrafting();
+	void ShowMainMenu();
 
 	UFUNCTION(BlueprintCallable, Category = "UI")
-	void ToggleMap();
+	void HideMainMenu();
+
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void TogglePauseMenu();
 
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void ShowPauseMenu();
@@ -61,42 +53,74 @@ public:
 	void ShowDeathScreen();
 
 	UFUNCTION(BlueprintCallable, Category = "UI")
+	void HideDeathScreen();
+
+	UFUNCTION(BlueprintCallable, Category = "UI")
 	void HideAllMenus();
 
-	/** Show a notification message on the HUD */
-	UFUNCTION(BlueprintCallable, Category = "UI")
-	void ShowNotification(const FText& Message, float Duration = 3.0f);
+	// ---- HUD Prompts ----
 
-	/** Show an interaction prompt (e.g. "Press E to interact") */
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void ShowInteractionPrompt(const FText& ActionText, const FText& ObjectName);
 
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void HideInteractionPrompt();
 
-	/** Check if any menu is currently open */
 	UFUNCTION(BlueprintCallable, Category = "UI")
+	void ShowNotification(const FText& Message, float Duration = 3.0f);
+
+	// ---- State Queries ----
+
+	UFUNCTION(BlueprintPure, Category = "UI")
 	bool IsAnyMenuOpen() const;
 
+	UFUNCTION(BlueprintPure, Category = "UI")
+	bool IsMainMenuVisible() const { return bMainMenuVisible; }
+
+	// ---- State ----
+	bool bMainMenuVisible = true;
+	bool bPauseMenuVisible = false;
+	bool bDeathScreenVisible = false;
+
 protected:
-	UPROPERTY()
-	TObjectPtr<UUserWidget> MainWidget;
+	// ---- Canvas HUD Drawing ----
+	void DrawStatBars();
+	void DrawCrosshair();
+	void DrawInteractionPromptHUD();
+	void DrawNotifications();
+	void DrawCompass();
+	void DrawDeathOverlay();
 
-	UPROPERTY()
-	TObjectPtr<UUserWidget> InventoryWidget;
+	/** Draw a single horizontal stat bar with label and value text. */
+	void DrawStatBar(float X, float Y, float Width, float Height, float Percent,
+		const FLinearColor& BarColor, const FString& Label, const FString& ValueText);
 
-	UPROPERTY()
-	TObjectPtr<UUserWidget> CraftingWidget;
+	/** Retrieve the player's stats component. */
+	UPlayerStatsComponent* GetPlayerStats() const;
 
-	UPROPERTY()
-	TObjectPtr<UUserWidget> MapWidget;
+	// ---- Interaction Prompt ----
+	bool bShowInteraction = false;
+	FText InteractActionText;
+	FText InteractObjectText;
 
-	UPROPERTY()
-	TObjectPtr<UUserWidget> PauseMenuWidget;
+	// ---- Notifications ----
+	struct FHUDNotification
+	{
+		FText Message;
+		float TimeRemaining;
+	};
+	TArray<FHUDNotification> ActiveNotifications;
 
-	UPROPERTY()
-	TObjectPtr<UUserWidget> DeathScreenWidget;
+	// ---- Smoothed Display Values ----
+	float DisplayHealth = 1.0f;
+	float DisplayHunger = 1.0f;
+	float DisplayThirst = 1.0f;
+	float DisplayStamina = 1.0f;
 
-private:
-	void SetMenuMode(bool bMenuOpen);
+	// ---- Slate Menus ----
+	TSharedPtr<SWidget> MainMenuOverlay;
+	TSharedPtr<SWidget> PauseMenuOverlay;
+
+	void CreateMainMenuSlate();
+	void CreatePauseMenuSlate();
 };

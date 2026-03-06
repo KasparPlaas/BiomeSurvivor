@@ -19,6 +19,7 @@ class USleepComponent;
 class UStealthComponent;
 class UCameraComponent;
 class USpringArmComponent;
+class UStaticMeshComponent;
 class UInputMappingContext;
 class UInputAction;
 
@@ -170,6 +171,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputAction> ToggleCameraAction;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> PauseAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> InventoryAction;
+
 	// ---- Input Handlers ----
 	void HandleMove(const struct FInputActionValue& Value);
 	void HandleLook(const struct FInputActionValue& Value);
@@ -181,7 +188,18 @@ protected:
 	void HandleAttack();
 	void HandleBlock();
 	void HandleDodge();
+	void HandlePause();
+	void HandleToggleInventory();
 
 	/** Whether the player is currently sprinting. */
 	bool bIsSprinting = false;
+
+public:
+	// ---- Visible Body Mesh (placeholder) ----
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Visual")
+	TObjectPtr<UStaticMeshComponent> BodyMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Visual")
+	TObjectPtr<UStaticMeshComponent> HeadMesh;
 };
