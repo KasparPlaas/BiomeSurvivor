@@ -18,6 +18,7 @@
 #include "World/DayNightCycle.h"
 #include "World/WeatherSystem.h"
 #include "Core/BiomeSurvivorGameState.h"
+#include "Building/BuildingPiece.h"
 
 void USaveLoadSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -211,7 +212,7 @@ void USaveLoadSubsystem::CollectPlayerData(FSavedPlayerData& OutData)
     if (UPlayerStatsComponent* Stats = Character->FindComponentByClass<UPlayerStatsComponent>())
     {
         OutData.Stats.Health = Stats->GetHealth();
-        OutData.Stats.MaxHealth = Stats->GetMaxHealth();
+        OutData.Stats.MaxHealth = Stats->MaxHealth;
         OutData.Stats.Hunger = Stats->GetHunger();
         OutData.Stats.Thirst = Stats->GetThirst();
         OutData.Stats.Stamina = Stats->GetStamina();
@@ -221,43 +222,43 @@ void USaveLoadSubsystem::CollectPlayerData(FSavedPlayerData& OutData)
     // Temperature
     if (UTemperatureComponent* Temp = Character->FindComponentByClass<UTemperatureComponent>())
     {
-        OutData.Stats.BodyTemperature = Temp->GetBodyTemperature();
+        OutData.Stats.BodyTemperature = Temp->BodyTemperature;
     }
 
     // Sleep
     if (USleepComponent* Sleep = Character->FindComponentByClass<USleepComponent>())
     {
-        OutData.Stats.Fatigue = Sleep->GetFatigue();
+        OutData.Stats.Fatigue = Sleep->Fatigue;
     }
 
     // Inventory
     if (UInventoryComponent* Inv = Character->FindComponentByClass<UInventoryComponent>())
     {
         // Main inventory
-        const TArray<FInventorySlot>& Slots = Inv->GetInventorySlots();
-        for (int32 i = 0; i < Slots.Num(); ++i)
+        const TArray<FItemInstance>& Items = Inv->GetAllItems();
+        for (int32 i = 0; i < Items.Num(); ++i)
         {
-            if (Slots[i].ItemDefinition)
+            if (Items[i].IsValid())
             {
                 FSavedItemStack Stack;
-                Stack.ItemId = Slots[i].ItemDefinition->GetPrimaryAssetId();
-                Stack.StackCount = Slots[i].StackCount;
-                Stack.Durability = Slots[i].Durability;
+                Stack.ItemId = FPrimaryAssetId("ItemDefinition", Items[i].ItemID);
+                Stack.StackCount = Items[i].StackCount;
+                Stack.Durability = Items[i].CurrentDurability;
                 Stack.SlotIndex = i;
                 OutData.InventoryItems.Add(Stack);
             }
         }
 
         // Quickbar
-        const TArray<FInventorySlot>& Quickbar = Inv->GetQuickbarSlots();
-        for (int32 i = 0; i < Quickbar.Num(); ++i)
+        for (int32 i = 0; i < Inv->QuickBarSlots; ++i)
         {
-            if (Quickbar[i].ItemDefinition)
+            int32 MappedSlot = Inv->GetQuickBarSlot(i);
+            if (MappedSlot >= 0 && MappedSlot < Items.Num() && Items[MappedSlot].IsValid())
             {
                 FSavedItemStack Stack;
-                Stack.ItemId = Quickbar[i].ItemDefinition->GetPrimaryAssetId();
-                Stack.StackCount = Quickbar[i].StackCount;
-                Stack.Durability = Quickbar[i].Durability;
+                Stack.ItemId = FPrimaryAssetId("ItemDefinition", Items[MappedSlot].ItemID);
+                Stack.StackCount = Items[MappedSlot].StackCount;
+                Stack.Durability = Items[MappedSlot].CurrentDurability;
                 Stack.SlotIndex = i;
                 OutData.QuickbarItems.Add(Stack);
             }
@@ -267,13 +268,13 @@ void USaveLoadSubsystem::CollectPlayerData(FSavedPlayerData& OutData)
     // Status effects
     if (UStatusEffectComponent* Effects = Character->FindComponentByClass<UStatusEffectComponent>())
     {
-        for (const FActiveStatusEffect& Effect : Effects->GetActiveEffects())
+        for (const FStatusEffect& Effect : Effects->GetActiveEffects())
         {
             FSavedStatusEffect Saved;
-            Saved.EffectName = Effect.EffectName;
+            Saved.EffectName = FName(*UEnum::GetValueAsString(Effect.Type));
             Saved.Severity = Effect.Severity;
             Saved.Duration = Effect.Duration;
-            Saved.ElapsedTime = Effect.ElapsedTime;
+            Saved.ElapsedTime = 0.0f;
             OutData.StatusEffects.Add(Saved);
         }
     }
@@ -281,14 +282,14 @@ void USaveLoadSubsystem::CollectPlayerData(FSavedPlayerData& OutData)
     // Injuries
     if (UMedicalComponent* Medical = Character->FindComponentByClass<UMedicalComponent>())
     {
-        for (const FActiveInjury& Injury : Medical->GetActiveInjuries())
+        for (const FInjury& Injury : Medical->GetInjuries())
         {
             FSavedInjury Saved;
-            Saved.InjuryType = Injury.InjuryName;
+            Saved.InjuryType = FName(*UEnum::GetValueAsString(Injury.Type));
             Saved.Severity = Injury.Severity;
-            Saved.HealProgress = Injury.HealProgress;
-            Saved.bIsTreated = Injury.bIsTreated;
-            Saved.bIsInfected = Injury.bIsInfected;
+            Saved.HealProgress = Injury.HealingProgress;
+            Saved.bIsTreated = Injury.bTreated;
+            Saved.bIsInfected = false;
             OutData.Injuries.Add(Saved);
         }
     }
@@ -307,8 +308,8 @@ void USaveLoadSubsystem::CollectWorldData(FSavedWorldState& OutData)
         ADayNightCycle* DayNight = Cast<ADayNightCycle>(DayNightActors[0]);
         if (DayNight)
         {
-            OutData.TimeOfDay = DayNight->GetCurrentHour();
-            OutData.DayNumber = DayNight->GetCurrentDay();
+            OutData.TimeOfDay = DayNight->GameTimeHours;
+            OutData.DayNumber = DayNight->CurrentDay;
         }
     }
 
@@ -320,10 +321,13 @@ void USaveLoadSubsystem::CollectWorldData(FSavedWorldState& OutData)
         AWeatherSystem* Weather = Cast<AWeatherSystem>(WeatherActors[0]);
         if (Weather)
         {
-            OutData.Weather.CurrentWeatherType = Weather->GetCurrentWeatherName();
-            OutData.Weather.WeatherIntensity = Weather->GetWeatherIntensity();
-            OutData.Weather.WindSpeed = Weather->GetWindSpeed();
-            OutData.Weather.WindDirection = Weather->GetWindDirection();
+            OutData.Weather.CurrentWeatherType = FName(*UEnum::GetValueAsString(Weather->CurrentWeather));
+            OutData.Weather.WeatherIntensity = Weather->WeatherIntensity;
+            OutData.Weather.WindSpeed = Weather->WindSpeed;
+            OutData.Weather.WindDirection = FVector(
+                FMath::Cos(FMath::DegreesToRadians(Weather->WindDirection)),
+                FMath::Sin(FMath::DegreesToRadians(Weather->WindDirection)),
+                0.0f);
         }
     }
 
@@ -333,13 +337,13 @@ void USaveLoadSubsystem::CollectWorldData(FSavedWorldState& OutData)
     for (AActor* Actor : BuildingActors)
     {
         ABuildingPiece* Piece = Cast<ABuildingPiece>(Actor);
-        if (Piece && Piece->IsPlaced())
+        if (Piece && !Piece->bIsPreview)
         {
             FSavedBuildingPiece Saved;
             Saved.Transform = Piece->GetActorTransform();
-            Saved.CurrentHealth = Piece->GetCurrentHealth();
-            Saved.MaxHealth = Piece->GetMaxHealth();
-            Saved.UniqueId = Piece->GetUniqueId();
+            Saved.CurrentHealth = Piece->Health;
+            Saved.MaxHealth = Piece->MaxHealth;
+            Saved.UniqueId = FGuid::NewGuid();
             OutData.Buildings.Add(Saved);
         }
     }
@@ -380,38 +384,53 @@ void USaveLoadSubsystem::ApplyPlayerData(const FSavedPlayerData& Data)
     // Restore stats
     if (UPlayerStatsComponent* Stats = Character->FindComponentByClass<UPlayerStatsComponent>())
     {
-        Stats->SetHealth(Data.Stats.Health);
-        Stats->SetHunger(Data.Stats.Hunger);
-        Stats->SetThirst(Data.Stats.Thirst);
-        Stats->SetStamina(Data.Stats.Stamina);
-        Stats->SetComfort(Data.Stats.Comfort);
+        Stats->Health = Data.Stats.Health;
+        Stats->Hunger = Data.Stats.Hunger;
+        Stats->Thirst = Data.Stats.Thirst;
+        Stats->Stamina = Data.Stats.Stamina;
+        Stats->Comfort = Data.Stats.Comfort;
     }
 
     // Restore temperature
     if (UTemperatureComponent* Temp = Character->FindComponentByClass<UTemperatureComponent>())
     {
-        Temp->SetBodyTemperature(Data.Stats.BodyTemperature);
+        Temp->BodyTemperature = Data.Stats.BodyTemperature;
     }
 
     // Restore fatigue
     if (USleepComponent* Sleep = Character->FindComponentByClass<USleepComponent>())
     {
-        Sleep->SetFatigue(Data.Stats.Fatigue);
+        Sleep->Fatigue = Data.Stats.Fatigue;
     }
 
-    // Restore inventory (clear first, then add items via AssetManager)
+    // Restore inventory
     if (UInventoryComponent* Inv = Character->FindComponentByClass<UInventoryComponent>())
     {
-        Inv->ClearInventory();
-        
-        for (const FSavedItemStack& Stack : Data.InventoryItems)
+        // Clear existing items by removing from all slots
+        const TArray<FItemInstance>& CurrentItems = Inv->GetAllItems();
+        for (int32 i = CurrentItems.Num() - 1; i >= 0; --i)
         {
-            Inv->AddItemByAssetId(Stack.ItemId, Stack.StackCount, Stack.SlotIndex);
+            if (CurrentItems[i].IsValid())
+            {
+                Inv->RemoveItemFromSlot(i);
+            }
         }
 
-        for (const FSavedItemStack& Stack : Data.QuickbarItems)
+        // Add saved items
+        for (const FSavedItemStack& Stack : Data.InventoryItems)
         {
-            Inv->AddItemToQuickbar(Stack.ItemId, Stack.StackCount, Stack.SlotIndex);
+            Inv->AddItem(Stack.ItemId.PrimaryAssetName, Stack.StackCount);
+        }
+
+        // Restore quickbar mappings
+        for (int32 i = 0; i < Data.QuickbarItems.Num(); ++i)
+        {
+            const FSavedItemStack& QBStack = Data.QuickbarItems[i];
+            int32 InvSlot = Inv->FindItemSlot(QBStack.ItemId.PrimaryAssetName);
+            if (InvSlot >= 0)
+            {
+                Inv->AssignToQuickBar(InvSlot, QBStack.SlotIndex);
+            }
         }
     }
 
@@ -433,7 +452,7 @@ void USaveLoadSubsystem::ApplyWorldData(const FSavedWorldState& Data)
         if (DayNight)
         {
             DayNight->SetTimeOfDay(Data.TimeOfDay);
-            DayNight->SetDay(Data.DayNumber);
+            DayNight->CurrentDay = Data.DayNumber;
         }
     }
 
@@ -445,14 +464,24 @@ void USaveLoadSubsystem::ApplyWorldData(const FSavedWorldState& Data)
         AWeatherSystem* Weather = Cast<AWeatherSystem>(WeatherActors[0]);
         if (Weather)
         {
-            Weather->ForceWeather(Data.Weather.CurrentWeatherType, Data.Weather.WeatherIntensity);
+            // Convert saved weather name back to enum
+            EWeatherType WeatherType = EWeatherType::Clear;
+            const UEnum* WeatherEnum = StaticEnum<EWeatherType>();
+            if (WeatherEnum)
+            {
+                int64 EnumValue = WeatherEnum->GetValueByNameString(Data.Weather.CurrentWeatherType.ToString());
+                if (EnumValue != INDEX_NONE)
+                {
+                    WeatherType = static_cast<EWeatherType>(EnumValue);
+                }
+            }
+            Weather->SetWeather(WeatherType, Data.Weather.WeatherIntensity);
         }
     }
 
     // Rebuild building pieces
     for (const FSavedBuildingPiece& PieceData : Data.Buildings)
     {
-        // Spawn building piece from asset ID and set transform
         FActorSpawnParameters SpawnParams;
         SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
         
@@ -461,8 +490,8 @@ void USaveLoadSubsystem::ApplyWorldData(const FSavedWorldState& Data)
         
         if (Piece)
         {
-            Piece->SetCurrentHealth(PieceData.CurrentHealth);
-            Piece->FinalizePlace();
+            Piece->Health = PieceData.CurrentHealth;
+            Piece->ConfirmPlacement(TEXT(""));
         }
     }
 

@@ -14,9 +14,9 @@ ADayNightCycle::ADayNightCycle()
 	// Sun light
 	SunLight = CreateDefaultSubobject<UDirectionalLightComponent>(TEXT("SunLight"));
 	SunLight->SetIntensity(SunPeakIntensity);
-	SunLight->SetAtmosphereSunLight(true);
+	SunLight->bAtmosphereSunLight = true;
 	SunLight->SetCastShadows(true);
-	SunLight->SetDynamicShadowCascades(4);
+	SunLight->DynamicShadowCascades = 4;
 	RootComponent = SunLight;
 
 	// Moon light

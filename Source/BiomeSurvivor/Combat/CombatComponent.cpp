@@ -48,7 +48,7 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	if (LockedTarget)
 	{
 		float Dist = FVector::Dist(GetOwner()->GetActorLocation(), LockedTarget->GetActorLocation());
-		if (Dist > LockOnRange || LockedTarget->IsPendingKillPending())
+		if (Dist > LockOnRange || !IsValid(LockedTarget))
 		{
 			LockedTarget = nullptr;
 		}

@@ -28,7 +28,7 @@ void AAnimalSpawner::Tick(float DeltaTime)
 	// Clean up dead/destroyed references
 	SpawnedAnimals.RemoveAll([](AAnimalBase* Animal)
 	{
-		return !Animal || Animal->IsPendingKillPending();
+		return !IsValid(Animal);
 	});
 
 	SpawnTimer += DeltaTime;

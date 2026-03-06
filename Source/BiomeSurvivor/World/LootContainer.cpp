@@ -92,34 +92,31 @@ bool ALootContainer::CanInteract_Implementation(AActor* Interactor) const
 FInteractionData ALootContainer::GetInteractionData_Implementation() const
 {
     FInteractionData Data;
-    Data.InteractableName = ContainerName;
-    Data.bRequiresHold = false;
+    Data.InteractionText = ContainerName;
 
     if (bIsLocked)
     {
         Data.InteractionType = EInteractionType::Simple;
-        Data.ActionText = FText::FromString("Locked");
+        Data.SubText = FText::FromString("Locked");
 
         FInteractionOption UnlockOption;
-        UnlockOption.OptionId = "Unlock";
-        UnlockOption.DisplayText = FText::FromString("Unlock");
-        UnlockOption.bRequiresItem = true;
-        UnlockOption.RequiredItemId = RequiredKeyId;
+        UnlockOption.ActionId = "Unlock";
+        UnlockOption.OptionText = FText::FromString("Unlock");
         Data.Options.Add(UnlockOption);
     }
     else if (bIsOpen)
     {
         Data.InteractionType = EInteractionType::Simple;
-        Data.ActionText = FText::FromString("Close");
+        Data.SubText = FText::FromString("Close");
     }
     else
     {
         Data.InteractionType = EInteractionType::Simple;
-        Data.ActionText = FText::FromString("Open");
+        Data.SubText = FText::FromString("Open");
 
         FInteractionOption TakeAllOption;
-        TakeAllOption.OptionId = "TakeAll";
-        TakeAllOption.DisplayText = FText::FromString("Take All");
+        TakeAllOption.ActionId = "TakeAll";
+        TakeAllOption.OptionText = FText::FromString("Take All");
         Data.Options.Add(TakeAllOption);
     }
 
@@ -226,12 +223,8 @@ void ALootContainer::GenerateLoot()
         // Add item to container inventory
         // The actual AddItem logic depends on InventoryComponent implementation
         // For now we'll use a simplified approach
-        FItemStack NewStack;
-        NewStack.ItemId = Entry.ItemId;
-        NewStack.Count = ActualCount;
-        NewStack.Durability = FMath::FRandRange(Entry.MinDurability, Entry.MaxDurability);
-
-        ContainerInventory->AddItemStack(NewStack);
+        // Add item to container using the InventoryComponent API
+        ContainerInventory->AddItem(Entry.ItemId.PrimaryAssetName, ActualCount);
         ItemsGenerated += ActualCount;
     }
 
@@ -285,7 +278,7 @@ bool ALootContainer::Unlock(AActor* Unlocker)
 bool ALootContainer::IsEmpty() const
 {
     if (!ContainerInventory) return true;
-    return ContainerInventory->GetTotalItemCount() == 0;
+    return ContainerInventory->GetUsedSlotCount() == 0;
 }
 
 void ALootContainer::OnRespawnTimer()

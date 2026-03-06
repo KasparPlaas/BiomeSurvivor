@@ -137,7 +137,7 @@ bool AHeatSource::CanInteract_Implementation(AActor* Interactor) const
 FInteractionData AHeatSource::GetInteractionData_Implementation() const
 {
     FInteractionData Data;
-    Data.InteractableName = FText::FromString(
+    Data.InteractionText = FText::FromString(
         SourceType == EHeatSourceType::Campfire ? "Campfire" :
         SourceType == EHeatSourceType::Fireplace ? "Fireplace" :
         SourceType == EHeatSourceType::Furnace ? "Furnace" :
@@ -147,24 +147,24 @@ FInteractionData AHeatSource::GetInteractionData_Implementation() const
 
     if (!IsBurning())
     {
-        Data.ActionText = FText::FromString("Light");
+        Data.SubText = FText::FromString("Light");
         FInteractionOption Opt;
-        Opt.OptionId = "Light";
-        Opt.DisplayText = FText::FromString("Light Fire");
+        Opt.ActionId = "Light";
+        Opt.OptionText = FText::FromString("Light Fire");
         Data.Options.Add(Opt);
     }
     else
     {
-        Data.ActionText = FText::FromString("Cook");
+        Data.SubText = FText::FromString("Cook");
 
         FInteractionOption AddFuelOpt;
-        AddFuelOpt.OptionId = "AddFuel";
-        AddFuelOpt.DisplayText = FText::FromString("Add Fuel");
+        AddFuelOpt.ActionId = "AddFuel";
+        AddFuelOpt.OptionText = FText::FromString("Add Fuel");
         Data.Options.Add(AddFuelOpt);
 
         FInteractionOption ExtinguishOpt;
-        ExtinguishOpt.OptionId = "Extinguish";
-        ExtinguishOpt.DisplayText = FText::FromString("Extinguish");
+        ExtinguishOpt.ActionId = "Extinguish";
+        ExtinguishOpt.OptionText = FText::FromString("Extinguish");
         Data.Options.Add(ExtinguishOpt);
     }
 

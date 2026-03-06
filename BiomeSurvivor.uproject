@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "5.4",
+	"EngineAssociation": "5.7",
 	"Category": "Game",
 	"Description": "Biome Survivor - A 3D open-world survival game with 7 biomes, crafting, building, and co-op multiplayer.",
 	"Modules": [
@@ -19,7 +19,7 @@
 	"Plugins": [
 		{ "Name": "EnhancedInput", "Enabled": true },
 		{ "Name": "OnlineSubsystem", "Enabled": true },
-		{ "Name": "OnlineSubsystemSteam", "Enabled": true },
+		{ "Name": "OnlineSubsystemSteam", "Enabled": false },
 		{ "Name": "OnlineSubsystemUtils", "Enabled": true },
 		{ "Name": "AIModule", "Enabled": true },
 		{ "Name": "NavigationSystem", "Enabled": true },

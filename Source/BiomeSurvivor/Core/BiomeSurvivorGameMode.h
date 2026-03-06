@@ -61,6 +61,9 @@ protected:
 	/** Handle delayed respawn via timer. */
 	void HandleRespawn(APlayerController* PlayerController);
 
+	/** Spawn essential world actors (DayNightCycle, WeatherSystem) if not already placed. */
+	void SpawnEssentialActors();
+
 	/** Timer handles for pending respawns. */
 	TMap<APlayerController*, FTimerHandle> PendingRespawns;
 };

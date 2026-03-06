@@ -6,6 +6,8 @@
 #include "Core/BiomeSurvivorPlayerState.h"
 #include "Player/SurvivorCharacter.h"
 #include "UI/SurvivorHUD.h"
+#include "World/DayNightCycle.h"
+#include "World/WeatherSystem.h"
 #include "BiomeSurvivor.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
@@ -27,6 +29,9 @@ ABiomeSurvivorGameMode::ABiomeSurvivorGameMode()
 void ABiomeSurvivorGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
 {
 	Super::InitGame(MapName, Options, ErrorMessage);
+
+	// Spawn essential world actors if not already placed in the level
+	SpawnEssentialActors();
 
 	// Parse server mode from URL options (e.g., ?ServerMode=PvPvE)
 	FString ModeOption = UGameplayStatics::ParseOption(Options, TEXT("ServerMode"));
@@ -85,8 +90,6 @@ void ABiomeSurvivorGameMode::RespawnPlayer(APlayerController* PlayerController, 
 	}
 
 	FTimerHandle& TimerHandle = PendingRespawns.FindOrAdd(PlayerController);
-	FTimerDelegate TimerDelegate;
-	TimerDelegate.BindUFunction(this, FName("HandleRespawn"), PlayerController);
 
 	GetWorldTimerManager().SetTimer(TimerHandle, [this, PlayerController]()
 	{
@@ -116,4 +119,32 @@ void ABiomeSurvivorGameMode::KickPlayer(APlayerController* PlayerController, con
 	}
 
 	GameSession->KickPlayer(PlayerController, FText::FromString(Reason));
+}
+
+void ABiomeSurvivorGameMode::SpawnEssentialActors()
+{
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	// Spawn DayNightCycle if none exists
+	TArray<AActor*> DayNightActors;
+	UGameplayStatics::GetAllActorsOfClass(World, ADayNightCycle::StaticClass(), DayNightActors);
+	if (DayNightActors.Num() == 0)
+	{
+		FActorSpawnParameters Params;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		World->SpawnActor<ADayNightCycle>(ADayNightCycle::StaticClass(), FTransform::Identity, Params);
+		UE_LOG(LogBiomeSurvivor, Log, TEXT("Auto-spawned DayNightCycle"));
+	}
+
+	// Spawn WeatherSystem if none exists
+	TArray<AActor*> WeatherActors;
+	UGameplayStatics::GetAllActorsOfClass(World, AWeatherSystem::StaticClass(), WeatherActors);
+	if (WeatherActors.Num() == 0)
+	{
+		FActorSpawnParameters Params;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		World->SpawnActor<AWeatherSystem>(AWeatherSystem::StaticClass(), FTransform::Identity, Params);
+		UE_LOG(LogBiomeSurvivor, Log, TEXT("Auto-spawned WeatherSystem"));
+	}
 }

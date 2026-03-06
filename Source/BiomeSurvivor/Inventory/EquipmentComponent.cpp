@@ -163,3 +163,9 @@ void UEquipmentComponent::ServerUnequipSlot_Implementation(EEquipSlot Slot)
 {
 	UnequipSlot(Slot);
 }
+
+void UEquipmentComponent::RecalculateStats()
+{
+	// Aggregate stats are computed on-demand via GetTotalArmor/Warmth/etc.
+	// This stub exists for future use if caching is needed.
+}
