@@ -20,6 +20,16 @@ void UCombatComponent::BeginPlay()
 	Super::BeginPlay();
 }
 
+void UCombatComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(LightAttackTimerHandle);
+		World->GetTimerManager().ClearTimer(HeavyAttackTimerHandle);
+	}
+	Super::EndPlay(EndPlayReason);
+}
+
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -45,10 +55,10 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	}
 
 	// Update lock-on
-	if (LockedTarget)
+	if (LockedTarget && IsValid(LockedTarget))
 	{
 		float Dist = FVector::Dist(GetOwner()->GetActorLocation(), LockedTarget->GetActorLocation());
-		if (Dist > LockOnRange || !IsValid(LockedTarget))
+		if (Dist > LockOnRange)
 		{
 			LockedTarget = nullptr;
 		}
@@ -84,14 +94,8 @@ void UCombatComponent::TryLightAttack()
 
 	// Return to idle after animation
 	// In a real implementation, this would be driven by anim notifies
-	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
-	{
-		if (CurrentState == ECombatState::Attacking)
-		{
-			SetCombatState(ECombatState::Idle);
-		}
-	}, 0.4f, false);
+	GetWorld()->GetTimerManager().SetTimer(LightAttackTimerHandle, this,
+		&UCombatComponent::OnAttackAnimFinished, 0.4f, false);
 }
 
 void UCombatComponent::TryHeavyAttack()
@@ -110,14 +114,8 @@ void UCombatComponent::TryHeavyAttack()
 	// Heavy attack does 2x damage
 	PerformMeleeSweep(2.0f);
 
-	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
-	{
-		if (CurrentState == ECombatState::Attacking)
-		{
-			SetCombatState(ECombatState::Idle);
-		}
-	}, 0.7f, false);
+	GetWorld()->GetTimerManager().SetTimer(HeavyAttackTimerHandle, this,
+		&UCombatComponent::OnAttackAnimFinished, 0.7f, false);
 }
 
 void UCombatComponent::TryRangedAttack()
@@ -248,6 +246,14 @@ void UCombatComponent::SetCombatState(ECombatState NewState)
 	{
 		CurrentState = NewState;
 		OnCombatStateChanged.Broadcast(NewState);
+	}
+}
+
+void UCombatComponent::OnAttackAnimFinished()
+{
+	if (CurrentState == ECombatState::Attacking)
+	{
+		SetCombatState(ECombatState::Idle);
 	}
 }
 

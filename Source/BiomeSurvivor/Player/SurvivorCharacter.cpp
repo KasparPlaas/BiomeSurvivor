@@ -19,8 +19,81 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "InputAction.h"
 #include "InputActionValue.h"
+#include "InputMappingContext.h"
 #include "Net/UnrealNetwork.h"
+
+// ---- Helper: create a transient InputAction with given ValueType ----
+static UInputAction* CreateRuntimeInputAction(const FName& Name, EInputActionValueType ValueType)
+{
+	UInputAction* Action = NewObject<UInputAction>(GetTransientPackage(), Name);
+	Action->ValueType = ValueType;
+	return Action;
+}
+
+// ---- Helper: create runtime InputMappingContext with default bindings ----
+static UInputMappingContext* CreateDefaultMappingContext(
+	UInputAction* Move, UInputAction* Look, UInputAction* Jump, UInputAction* Sprint,
+	UInputAction* Crouch, UInputAction* Interact, UInputAction* Attack, UInputAction* Block,
+	UInputAction* Dodge, UInputAction* ToggleCamera)
+{
+	UInputMappingContext* IMC = NewObject<UInputMappingContext>(GetTransientPackage(), TEXT("IMC_DefaultRuntime"));
+
+	// WASD -> Move (Axis2D)
+	{
+		FEnhancedActionKeyMapping& W = IMC->MapKey(Move, EKeys::W);
+		UInputModifierSwizzleAxis* SwizzleW = NewObject<UInputModifierSwizzleAxis>();
+		SwizzleW->Order = EInputAxisSwizzle::YXZ;
+		W.Modifiers.Add(SwizzleW);
+	}
+	{
+		FEnhancedActionKeyMapping& S = IMC->MapKey(Move, EKeys::S);
+		UInputModifierSwizzleAxis* Swizzle = NewObject<UInputModifierSwizzleAxis>();
+		Swizzle->Order = EInputAxisSwizzle::YXZ;
+		S.Modifiers.Add(Swizzle);
+		UInputModifierNegate* Negate = NewObject<UInputModifierNegate>();
+		S.Modifiers.Add(Negate);
+	}
+	{
+		IMC->MapKey(Move, EKeys::D);
+	}
+	{
+		FEnhancedActionKeyMapping& A = IMC->MapKey(Move, EKeys::A);
+		UInputModifierNegate* Negate = NewObject<UInputModifierNegate>();
+		A.Modifiers.Add(Negate);
+	}
+
+	// Mouse XY -> Look (Axis2D)
+	IMC->MapKey(Look, EKeys::Mouse2D);
+
+	// Space -> Jump
+	IMC->MapKey(Jump, EKeys::SpaceBar);
+
+	// Shift -> Sprint
+	IMC->MapKey(Sprint, EKeys::LeftShift);
+
+	// Ctrl -> Crouch
+	IMC->MapKey(Crouch, EKeys::LeftControl);
+
+	// E -> Interact
+	IMC->MapKey(Interact, EKeys::E);
+
+	// Left Mouse -> Attack
+	IMC->MapKey(Attack, EKeys::LeftMouseButton);
+
+	// Right Mouse -> Block
+	IMC->MapKey(Block, EKeys::RightMouseButton);
+
+	// Alt -> Dodge
+	IMC->MapKey(Dodge, EKeys::LeftAlt);
+
+	// V -> Toggle Camera
+	IMC->MapKey(ToggleCamera, EKeys::V);
+
+	return IMC;
+}
 
 ASurvivorCharacter::ASurvivorCharacter()
 {
@@ -84,6 +157,32 @@ void ASurvivorCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	UE_LOG(LogBiomeSurvivor, Log, TEXT("SurvivorCharacter spawned: %s"), *GetName());
+
+	// Auto-create input actions at runtime if none set via Blueprint
+	if (!MoveAction)   MoveAction   = CreateRuntimeInputAction(TEXT("IA_Move"),   EInputActionValueType::Axis2D);
+	if (!LookAction)   LookAction   = CreateRuntimeInputAction(TEXT("IA_Look"),   EInputActionValueType::Axis2D);
+	if (!JumpAction)   JumpAction   = CreateRuntimeInputAction(TEXT("IA_Jump"),   EInputActionValueType::Boolean);
+	if (!SprintAction) SprintAction = CreateRuntimeInputAction(TEXT("IA_Sprint"), EInputActionValueType::Boolean);
+	if (!CrouchAction) CrouchAction = CreateRuntimeInputAction(TEXT("IA_Crouch"), EInputActionValueType::Boolean);
+	if (!InteractAction) InteractAction = CreateRuntimeInputAction(TEXT("IA_Interact"), EInputActionValueType::Boolean);
+	if (!AttackAction) AttackAction = CreateRuntimeInputAction(TEXT("IA_Attack"), EInputActionValueType::Boolean);
+	if (!BlockAction)  BlockAction  = CreateRuntimeInputAction(TEXT("IA_Block"),  EInputActionValueType::Boolean);
+	if (!DodgeAction)  DodgeAction  = CreateRuntimeInputAction(TEXT("IA_Dodge"),  EInputActionValueType::Boolean);
+	if (!ToggleCameraAction) ToggleCameraAction = CreateRuntimeInputAction(TEXT("IA_ToggleCamera"), EInputActionValueType::Boolean);
+
+	// Create and register default input mapping context
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+		{
+			UInputMappingContext* DefaultIMC = CreateDefaultMappingContext(
+				MoveAction, LookAction, JumpAction, SprintAction, CrouchAction,
+				InteractAction, AttackAction, BlockAction, DodgeAction, ToggleCameraAction);
+			Subsystem->AddMappingContext(DefaultIMC, 0);
+
+			UE_LOG(LogBiomeSurvivor, Log, TEXT("Runtime input mapping context registered"));
+		}
+	}
 }
 
 void ASurvivorCharacter::Tick(float DeltaTime)

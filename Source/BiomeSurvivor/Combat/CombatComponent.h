@@ -36,6 +36,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -147,7 +148,13 @@ private:
 	float DodgeTimer = 0.0f;
 	bool bIsInvincible = false; // i-frames during dodge
 
+	FTimerHandle LightAttackTimerHandle;
+	FTimerHandle HeavyAttackTimerHandle;
+
 	void SetCombatState(ECombatState NewState);
 	void PerformMeleeSweep(float DamageMultiplier);
 	AActor* FindLockOnTarget() const;
+
+	UFUNCTION()
+	void OnAttackAnimFinished();
 };

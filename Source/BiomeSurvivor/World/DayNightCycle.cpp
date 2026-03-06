@@ -118,7 +118,7 @@ void ADayNightCycle::OnRep_GameTime()
 
 void ADayNightCycle::AdvanceTime(float DeltaTime)
 {
-	if (bTimePaused) return;
+	if (bTimePaused || DayCycleDurationSeconds <= 0.0f) return;
 
 	// Convert real-time seconds to game-time hours
 	// DayCycleDurationSeconds real seconds = 24 game hours
