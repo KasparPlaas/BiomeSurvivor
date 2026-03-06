@@ -3,7 +3,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "InteractableInterface.h"
+#include "Core/InteractableInterface.h"
 #include "InteractionComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractableFound, AActor*, InteractableActor);
