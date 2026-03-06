@@ -9,6 +9,7 @@
 #include "World/DayNightCycle.h"
 #include "World/WeatherSystem.h"
 #include "World/ResourceNode.h"
+#include "World/LootContainer.h"
 #include "Wildlife/AnimalBase.h"
 #include "GameFramework/GameSession.h"
 #include "BiomeSurvivor.h"
@@ -157,6 +158,7 @@ void ABiomeSurvivorGameMode::SpawnEssentialActors()
 	// Spawn world resources and wildlife
 	SpawnWorldResources();
 	SpawnWildlife();
+	SpawnLootContainers();
 }
 
 void ABiomeSurvivorGameMode::SpawnWorldResources()
@@ -344,4 +346,63 @@ void ABiomeSurvivorGameMode::SpawnWildlife()
 	}
 
 	UE_LOG(LogBiomeSurvivor, Log, TEXT("Spawned wildlife: 6 deer, 3 wolves, 5 rabbits, 3 boars"));
+}
+
+void ABiomeSurvivorGameMode::SpawnLootContainers()
+{
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	const float TerrainHalf = 15000.0f;
+	FRandomStream Rand(777);
+
+	auto SpawnContainer = [&](FVector Location, EContainerType Type, FText Name, int32 Slots)
+	{
+		FTransform SpawnTransform(FRotator::ZeroRotator, Location);
+		ALootContainer* Container = World->SpawnActorDeferred<ALootContainer>(
+			ALootContainer::StaticClass(), SpawnTransform);
+		if (Container)
+		{
+			Container->ContainerType = Type;
+			Container->ContainerName = Name;
+			Container->ContainerSlots = Slots;
+			Container->bUseLootTable = false; // We'll manually add items
+
+			Container->FinishSpawning(SpawnTransform);
+
+			// Manually add items since loot table needs PrimaryAssetIds which don't exist
+			if (UInventoryComponent* Inv = Container->GetContainerInventory())
+			{
+				// Add random survival supplies
+				int32 NumItems = Rand.RandRange(2, 5);
+				TArray<FName> PossibleItems = { FName("Wood"), FName("Stone"), FName("Berries"), FName("Fiber"), FName("Bandage") };
+				for (int32 i = 0; i < NumItems; ++i)
+				{
+					FName ItemID = PossibleItems[Rand.RandRange(0, PossibleItems.Num() - 1)];
+					int32 Count = Rand.RandRange(1, 5);
+					Inv->AddItem(ItemID, Count);
+				}
+			}
+		}
+		return Container;
+	};
+
+	// Spawn 5 loot containers scattered around the world
+	for (int32 i = 0; i < 5; ++i)
+	{
+		FVector Pos(
+			Rand.FRandRange(-TerrainHalf * 0.6f, TerrainHalf * 0.6f),
+			Rand.FRandRange(-TerrainHalf * 0.6f, TerrainHalf * 0.6f),
+			50.0f
+		);
+
+		EContainerType Type = (i % 2 == 0) ? EContainerType::Chest : EContainerType::Crate;
+		FText Name = (Type == EContainerType::Chest)
+			? FText::FromString(TEXT("Wooden Chest"))
+			: FText::FromString(TEXT("Supply Crate"));
+
+		SpawnContainer(Pos, Type, Name, 8);
+	}
+
+	UE_LOG(LogBiomeSurvivor, Log, TEXT("Spawned 5 loot containers"));
 }

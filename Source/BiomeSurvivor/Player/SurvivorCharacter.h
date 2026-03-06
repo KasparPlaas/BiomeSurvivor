@@ -177,6 +177,18 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputAction> InventoryAction;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> QuickBar1Action;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> QuickBar2Action;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> QuickBar3Action;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> QuickBar4Action;
+
 	// ---- Input Handlers ----
 	void HandleMove(const struct FInputActionValue& Value);
 	void HandleLook(const struct FInputActionValue& Value);
@@ -187,9 +199,14 @@ protected:
 	void HandleInteract();
 	void HandleAttack();
 	void HandleBlock();
+	void HandleBlockRelease();
 	void HandleDodge();
 	void HandlePause();
 	void HandleToggleInventory();
+	void HandleQuickBar1();
+	void HandleQuickBar2();
+	void HandleQuickBar3();
+	void HandleQuickBar4();
 
 	/** Whether the player is currently sprinting. */
 	bool bIsSprinting = false;

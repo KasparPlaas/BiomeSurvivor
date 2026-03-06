@@ -70,6 +70,9 @@ protected:
 	/** Spawn wildlife (deer, wolves, rabbits). */
 	void SpawnWildlife();
 
+	/** Spawn loot containers throughout the world. */
+	void SpawnLootContainers();
+
 	/** Timer handles for pending respawns. */
 	TMap<APlayerController*, FTimerHandle> PendingRespawns;
 };

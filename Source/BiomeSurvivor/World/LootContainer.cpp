@@ -3,8 +3,10 @@
 #include "Inventory/InventoryComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/StaticMeshComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "TimerManager.h"
 #include "Engine/World.h"
+#include "UObject/ConstructorHelpers.h"
 
 ALootContainer::ALootContainer()
 {
@@ -14,6 +16,15 @@ ALootContainer::ALootContainer()
     ContainerMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ContainerMesh"));
     RootComponent = ContainerMesh;
     ContainerMesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+
+    // Set a visible mesh - cube for crate/chest appearance
+    static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeFinder(TEXT("/Engine/BasicShapes/Cube"));
+    if (CubeFinder.Succeeded())
+    {
+        ContainerMesh->SetStaticMesh(CubeFinder.Object);
+    }
+    ContainerMesh->SetRelativeScale3D(FVector(0.8f, 0.6f, 0.5f));
+    ContainerMesh->CastShadow = true;
 
     ContainerInventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("ContainerInventory"));
 
@@ -25,6 +36,28 @@ void ALootContainer::BeginPlay()
     Super::BeginPlay();
 
     ContainerInventory->MaxSlots = ContainerSlots;
+
+    // Apply colored material based on container type
+    if (ContainerMesh)
+    {
+        UMaterialInterface* BaseMat = ContainerMesh->GetMaterial(0);
+        if (BaseMat)
+        {
+            UMaterialInstanceDynamic* DynMat = UMaterialInstanceDynamic::Create(BaseMat, this);
+            FLinearColor Color;
+            switch (ContainerType)
+            {
+            case EContainerType::Chest:       Color = FLinearColor(0.55f, 0.35f, 0.12f); break; // Wood brown
+            case EContainerType::Crate:        Color = FLinearColor(0.45f, 0.3f, 0.15f); break;  // Darker wood
+            case EContainerType::Barrel:       Color = FLinearColor(0.35f, 0.25f, 0.1f); break;   // Dark wood
+            case EContainerType::SupplyDrop:   Color = FLinearColor(0.2f, 0.5f, 0.2f); break;     // Military green
+            case EContainerType::Corpse:       Color = FLinearColor(0.4f, 0.3f, 0.25f); break;    // Dirty
+            default:                           Color = FLinearColor(0.5f, 0.35f, 0.15f); break;
+            }
+            DynMat->SetVectorParameterValue(TEXT("BaseColor"), Color);
+            ContainerMesh->SetMaterial(0, DynMat);
+        }
+    }
 
     if (bUseLootTable && !bHasBeenLooted)
     {

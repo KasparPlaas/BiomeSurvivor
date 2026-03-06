@@ -3,6 +3,8 @@
 #include "UI/SurvivorHUD.h"
 #include "Player/SurvivorCharacter.h"
 #include "Player/PlayerStatsComponent.h"
+#include "Inventory/InventoryComponent.h"
+#include "Inventory/ItemDatabase.h"
 #include "BiomeSurvivor.h"
 
 // Slate includes
@@ -43,6 +45,7 @@ void ASurvivorHUD::BeginPlay()
 
 	CreateMainMenuSlate();
 	CreatePauseMenuSlate();
+	CreateInventorySlate();
 
 	// Start with main menu visible
 	ShowMainMenu();
@@ -61,6 +64,11 @@ void ASurvivorHUD::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		{
 			GEngine->GameViewport->RemoveViewportWidgetContent(PauseMenuOverlay.ToSharedRef());
 			PauseMenuOverlay.Reset();
+		}
+		if (InventoryOverlay.IsValid())
+		{
+			GEngine->GameViewport->RemoveViewportWidgetContent(InventoryOverlay.ToSharedRef());
+			InventoryOverlay.Reset();
 		}
 	}
 	Super::EndPlay(EndPlayReason);
@@ -101,9 +109,15 @@ void ASurvivorHUD::DrawHUD()
 
 	DrawCrosshair();
 	DrawStatBars();
+	DrawQuickBar();
 	DrawCompass();
 	DrawInteractionPromptHUD();
 	DrawNotifications();
+
+	if (bInventoryVisible)
+	{
+		DrawInventoryGrid();
+	}
 
 	if (bDeathScreenVisible)
 	{
@@ -346,6 +360,121 @@ void ASurvivorHUD::DrawDeathOverlay()
 	GetTextSize(Sub, SW, SH, SmallFont, 1.2f);
 	DrawText(Sub, FLinearColor(0.7f, 0.7f, 0.7f, 0.75f),
 		Canvas->SizeX * 0.5f - SW * 0.5f, Canvas->SizeY * 0.5f, SmallFont, 1.2f);
+}
+
+void ASurvivorHUD::DrawInventoryGrid()
+{
+	UInventoryComponent* Inventory = GetPlayerInventory();
+	if (!Inventory) return;
+
+	UFont* Font = GEngine ? GEngine->GetSmallFont() : nullptr;
+	if (!Font) return;
+
+	const int32 Cols = 6;
+	const int32 Rows = 5; // 30 slots total
+	const float SlotSize = 62.0f;
+	const float SlotPad = 3.0f;
+	const float GridW = Cols * (SlotSize + SlotPad) - SlotPad;
+	const float GridH = Rows * (SlotSize + SlotPad) - SlotPad;
+	const float StartX = (Canvas->SizeX - GridW) * 0.5f;
+	const float StartY = (Canvas->SizeY - GridH) * 0.5f + 40.0f; // offset for title
+
+	// Title
+	UFont* MedFont = GEngine->GetMediumFont();
+	const FString Title = TEXT("INVENTORY");
+	float TW = 0, TH = 0;
+	GetTextSize(Title, TW, TH, MedFont, 1.5f);
+	DrawText(Title, FLinearColor(0.88f, 0.82f, 0.65f),
+		Canvas->SizeX * 0.5f - TW * 0.5f, StartY - 50.0f, MedFont, 1.5f);
+
+	// Weight display
+	float TotalWeight = Inventory->GetTotalWeight();
+	UPlayerStatsComponent* Stats = GetPlayerStats();
+	float MaxWeight = Stats ? Stats->MaxWeight : 40.0f;
+	FString WeightStr = FString::Printf(TEXT("Weight: %.1f / %.1f kg"), TotalWeight, MaxWeight);
+	FLinearColor WeightColor = (TotalWeight > MaxWeight) ? FLinearColor(0.9f, 0.2f, 0.2f) : FLinearColor(0.7f, 0.7f, 0.7f);
+	float WW = 0, WH = 0;
+	GetTextSize(WeightStr, WW, WH, Font, 1.0f);
+	DrawText(WeightStr, WeightColor, Canvas->SizeX * 0.5f - WW * 0.5f, StartY - 22.0f, Font, 1.0f);
+
+	// Draw grid
+	const TArray<FItemInstance>& Items = Inventory->GetAllItems();
+
+	for (int32 Row = 0; Row < Rows; ++Row)
+	{
+		for (int32 Col = 0; Col < Cols; ++Col)
+		{
+			int32 SlotIdx = Row * Cols + Col;
+			if (SlotIdx >= Items.Num()) break;
+
+			float X = StartX + Col * (SlotSize + SlotPad);
+			float Y = StartY + Row * (SlotSize + SlotPad);
+
+			// Slot background
+			FLinearColor BgColor = Items[SlotIdx].IsEmpty()
+				? FLinearColor(0.06f, 0.06f, 0.08f, 0.85f)
+				: FLinearColor(0.10f, 0.10f, 0.14f, 0.90f);
+			DrawRect(BgColor, X, Y, SlotSize, SlotSize);
+
+			// Slot border
+			const FLinearColor Border(0.3f, 0.3f, 0.3f, 0.6f);
+			DrawLine(X, Y, X + SlotSize, Y, Border);
+			DrawLine(X, Y + SlotSize, X + SlotSize, Y + SlotSize, Border);
+			DrawLine(X, Y, X, Y + SlotSize, Border);
+			DrawLine(X + SlotSize, Y, X + SlotSize, Y + SlotSize, Border);
+
+			// Slot number (small, top-left)
+			FString SlotNum = FString::Printf(TEXT("%d"), SlotIdx + 1);
+			DrawText(SlotNum, FLinearColor(0.3f, 0.3f, 0.3f, 0.4f), X + 2.0f, Y + 1.0f, Font, 0.7f);
+
+			if (!Items[SlotIdx].IsEmpty())
+			{
+				const FItemInstance& Item = Items[SlotIdx];
+
+				// Item name
+				FString ItemName = FItemDatabase::GetDisplayName(Item.ItemID).ToString();
+				if (ItemName.Len() > 8) ItemName = ItemName.Left(8);
+
+				// Color based on rarity
+				FLinearColor TextColor(0.9f, 0.85f, 0.7f);
+				const UItemDefinition* Def = FItemDatabase::Get(Item.ItemID);
+				if (Def)
+				{
+					switch (Def->Rarity)
+					{
+					case EItemRarity::Uncommon: TextColor = FLinearColor(0.3f, 0.85f, 0.3f); break;
+					case EItemRarity::Rare:     TextColor = FLinearColor(0.3f, 0.5f, 0.95f); break;
+					case EItemRarity::Epic:     TextColor = FLinearColor(0.7f, 0.3f, 0.9f); break;
+					case EItemRarity::Legendary:TextColor = FLinearColor(0.95f, 0.75f, 0.2f); break;
+					default: break;
+					}
+				}
+
+				DrawText(ItemName, TextColor, X + 4.0f, Y + 16.0f, Font, 0.85f);
+
+				// Stack count
+				if (Item.StackCount > 1)
+				{
+					FString Count = FString::Printf(TEXT("x%d"), Item.StackCount);
+					DrawText(Count, FLinearColor(0.7f, 0.9f, 0.7f), X + 4.0f, Y + 36.0f, Font, 0.8f);
+				}
+
+				// Show if consumable
+				if (Def && Def->bConsumable)
+				{
+					DrawText(TEXT("[E]"), FLinearColor(0.5f, 0.8f, 0.5f, 0.6f),
+						X + SlotSize - 22.0f, Y + SlotSize - 14.0f, Font, 0.65f);
+				}
+			}
+		}
+	}
+
+	// Instructions at bottom
+	FString Instructions = TEXT("[Tab] Close  |  [E] Use Item  |  [Q] Drop");
+	float IW = 0, IH = 0;
+	GetTextSize(Instructions, IW, IH, Font, 1.0f);
+	DrawText(Instructions, FLinearColor(0.5f, 0.5f, 0.5f, 0.7f),
+		Canvas->SizeX * 0.5f - IW * 0.5f, StartY + GridH + 15.0f, Font, 1.0f);
 }
 
 // ==================================================================
@@ -704,7 +833,7 @@ void ASurvivorHUD::ShowNotification(const FText& Message, float Duration)
 
 bool ASurvivorHUD::IsAnyMenuOpen() const
 {
-	return bMainMenuVisible || bPauseMenuVisible || bDeathScreenVisible;
+	return bMainMenuVisible || bPauseMenuVisible || bDeathScreenVisible || bInventoryVisible;
 }
 
 UPlayerStatsComponent* ASurvivorHUD::GetPlayerStats() const
@@ -716,4 +845,184 @@ UPlayerStatsComponent* ASurvivorHUD::GetPlayerStats() const
 	if (!Character) return nullptr;
 
 	return Character->StatsComponent;
+}
+
+UInventoryComponent* ASurvivorHUD::GetPlayerInventory() const
+{
+	APlayerController* PC = GetOwningPlayerController();
+	if (!PC) return nullptr;
+
+	ASurvivorCharacter* Character = Cast<ASurvivorCharacter>(PC->GetPawn());
+	if (!Character) return nullptr;
+
+	return Character->InventoryComponent;
+}
+
+// ==================================================================
+// Quickbar (Canvas-drawn at bottom center)
+// ==================================================================
+
+void ASurvivorHUD::DrawQuickBar()
+{
+	if (bPauseMenuVisible || bInventoryVisible) return;
+
+	UInventoryComponent* Inventory = GetPlayerInventory();
+	if (!Inventory) return;
+
+	UFont* Font = GEngine ? GEngine->GetSmallFont() : nullptr;
+	if (!Font) return;
+
+	const int32 NumSlots = 4;
+	const float SlotSize = 52.0f;
+	const float SlotPad = 4.0f;
+	const float TotalW = NumSlots * (SlotSize + SlotPad) - SlotPad;
+	const float StartX = (Canvas->SizeX - TotalW) * 0.5f;
+	const float StartY = Canvas->SizeY - 70.0f;
+
+	for (int32 i = 0; i < NumSlots; ++i)
+	{
+		float X = StartX + i * (SlotSize + SlotPad);
+
+		// Slot background
+		DrawRect(FLinearColor(0.04f, 0.04f, 0.06f, 0.7f), X, StartY, SlotSize, SlotSize);
+
+		// Slot border  
+		const FLinearColor Border(0.35f, 0.35f, 0.35f, 0.5f);
+		DrawLine(X, StartY, X + SlotSize, StartY, Border);
+		DrawLine(X, StartY + SlotSize, X + SlotSize, StartY + SlotSize, Border);
+		DrawLine(X, StartY, X, StartY + SlotSize, Border);
+		DrawLine(X + SlotSize, StartY, X + SlotSize, StartY + SlotSize, Border);
+
+		// Key number
+		FString KeyNum = FString::Printf(TEXT("%d"), i + 1);
+		DrawText(KeyNum, FLinearColor(0.5f, 0.5f, 0.5f, 0.6f), X + 3.0f, StartY + 2.0f, Font, 0.8f);
+
+		// Item in quickbar slot
+		int32 InvSlot = Inventory->GetQuickBarSlot(i);
+		if (InvSlot >= 0)
+		{
+			FItemInstance Item = Inventory->GetItemAtSlot(InvSlot);
+			if (!Item.IsEmpty())
+			{
+				// Item name (shortened)
+				FString ItemName = FItemDatabase::GetDisplayName(Item.ItemID).ToString();
+				if (ItemName.Len() > 6) ItemName = ItemName.Left(6);
+				DrawText(ItemName, FLinearColor(0.9f, 0.85f, 0.7f), X + 4.0f, StartY + 18.0f, Font, 0.8f);
+
+				// Stack count
+				if (Item.StackCount > 1)
+				{
+					FString Count = FString::Printf(TEXT("x%d"), Item.StackCount);
+					DrawText(Count, FLinearColor(0.7f, 0.9f, 0.7f), X + 4.0f, StartY + 34.0f, Font, 0.75f);
+				}
+			}
+		}
+	}
+}
+
+// ==================================================================
+// Inventory Slate Overlay
+// ==================================================================
+
+void ASurvivorHUD::CreateInventorySlate()
+{
+	if (!GEngine || !GEngine->GameViewport) return;
+
+	// We create a simple Slate overlay that will be refreshed each time it's opened
+	SAssignNew(InventoryOverlay, SOverlay)
+
+	// Semi-transparent background
+	+ SOverlay::Slot()
+	[
+		SNew(SBorder)
+		.BorderImage(&SolidWhiteBrush)
+		.BorderBackgroundColor(FLinearColor(0.01f, 0.01f, 0.02f, 0.80f))
+	]
+
+	// Content
+	+ SOverlay::Slot()
+	.HAlign(HAlign_Center)
+	.VAlign(VAlign_Center)
+	[
+		SNew(SVerticalBox)
+
+		// Title
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(0, 0, 0, 20)
+		.HAlign(HAlign_Center)
+		[
+			SNew(STextBlock)
+			.Text(FText::FromString(TEXT("INVENTORY")))
+			.Font(FCoreStyle::GetDefaultFontStyle("Bold", 32))
+			.ColorAndOpacity(FSlateColor(FLinearColor(0.88f, 0.82f, 0.65f)))
+		]
+
+		// Inventory info will be populated by RefreshInventorySlate
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.HAlign(HAlign_Center)
+		[
+			SNew(STextBlock)
+			.Text(FText::FromString(TEXT("Press Tab to close")))
+			.Font(FCoreStyle::GetDefaultFontStyle("Regular", 14))
+			.ColorAndOpacity(FSlateColor(FLinearColor(0.5f, 0.5f, 0.5f)))
+		]
+	];
+
+	GEngine->GameViewport->AddViewportWidgetContent(InventoryOverlay.ToSharedRef(), 150);
+
+	// Start hidden
+	InventoryOverlay->SetVisibility(EVisibility::Collapsed);
+}
+
+void ASurvivorHUD::RefreshInventorySlate()
+{
+	// The inventory Slate shows a basic overview. Detailed per-slot info is drawn via Canvas.
+	// Since Slate rebuilds are expensive, we keep it simple and draw items via DrawHUD when inventory is open.
+}
+
+void ASurvivorHUD::ToggleInventory()
+{
+	if (bMainMenuVisible) return;
+
+	if (bInventoryVisible)
+	{
+		HideInventory();
+	}
+	else
+	{
+		ShowInventory();
+	}
+}
+
+void ASurvivorHUD::ShowInventory()
+{
+	bInventoryVisible = true;
+	if (InventoryOverlay.IsValid())
+	{
+		InventoryOverlay->SetVisibility(EVisibility::Visible);
+	}
+	if (APlayerController* PC = GetOwningPlayerController())
+	{
+		FInputModeGameAndUI InputMode;
+		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		PC->SetInputMode(InputMode);
+		PC->SetShowMouseCursor(true);
+	}
+}
+
+void ASurvivorHUD::HideInventory()
+{
+	bInventoryVisible = false;
+	if (InventoryOverlay.IsValid())
+	{
+		InventoryOverlay->SetVisibility(EVisibility::Collapsed);
+	}
+	if (APlayerController* PC = GetOwningPlayerController())
+	{
+		FInputModeGameOnly InputMode;
+		PC->SetInputMode(InputMode);
+		PC->SetShowMouseCursor(false);
+	}
 }

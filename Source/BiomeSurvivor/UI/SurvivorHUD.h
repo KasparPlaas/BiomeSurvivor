@@ -7,6 +7,7 @@
 #include "SurvivorHUD.generated.h"
 
 class UPlayerStatsComponent;
+class UInventoryComponent;
 
 /**
  * ASurvivorHUD
@@ -58,6 +59,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void HideAllMenus();
 
+	// ---- Inventory ----
+
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void ToggleInventory();
+
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void ShowInventory();
+
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void HideInventory();
+
 	// ---- HUD Prompts ----
 
 	UFUNCTION(BlueprintCallable, Category = "UI")
@@ -77,10 +89,14 @@ public:
 	UFUNCTION(BlueprintPure, Category = "UI")
 	bool IsMainMenuVisible() const { return bMainMenuVisible; }
 
+	UFUNCTION(BlueprintPure, Category = "UI")
+	bool IsInventoryVisible() const { return bInventoryVisible; }
+
 	// ---- State ----
 	bool bMainMenuVisible = true;
 	bool bPauseMenuVisible = false;
 	bool bDeathScreenVisible = false;
+	bool bInventoryVisible = false;
 
 protected:
 	// ---- Canvas HUD Drawing ----
@@ -90,6 +106,8 @@ protected:
 	void DrawNotifications();
 	void DrawCompass();
 	void DrawDeathOverlay();
+	void DrawQuickBar();
+	void DrawInventoryGrid();
 
 	/** Draw a single horizontal stat bar with label and value text. */
 	void DrawStatBar(float X, float Y, float Width, float Height, float Percent,
@@ -97,6 +115,9 @@ protected:
 
 	/** Retrieve the player's stats component. */
 	UPlayerStatsComponent* GetPlayerStats() const;
+
+	/** Retrieve the player's inventory component. */
+	UInventoryComponent* GetPlayerInventory() const;
 
 	// ---- Interaction Prompt ----
 	bool bShowInteraction = false;
@@ -120,7 +141,10 @@ protected:
 	// ---- Slate Menus ----
 	TSharedPtr<SWidget> MainMenuOverlay;
 	TSharedPtr<SWidget> PauseMenuOverlay;
+	TSharedPtr<SWidget> InventoryOverlay;
 
 	void CreateMainMenuSlate();
 	void CreatePauseMenuSlate();
+	void CreateInventorySlate();
+	void RefreshInventorySlate();
 };

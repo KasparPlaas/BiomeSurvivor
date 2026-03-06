@@ -115,7 +115,7 @@ protected:
     UInventoryComponent* ContainerInventory;
 
     // ─── Configuration ───
-
+public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Container")
     EContainerType ContainerType = EContainerType::Chest;
 
@@ -124,6 +124,11 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Container")
     int32 ContainerSlots = 12;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Container")
+    bool bUseLootTable = false;
+
+protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Container")
     bool bIsLocked = false;
@@ -136,9 +141,6 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Container")
     float InteractionDistance = 250.0f;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Container")
-    bool bUseLootTable = false;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Container", meta = (EditCondition = "bUseLootTable"))
     FLootTable LootTable;

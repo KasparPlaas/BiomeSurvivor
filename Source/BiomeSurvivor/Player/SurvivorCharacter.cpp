@@ -14,8 +14,11 @@
 #include "Survival/SleepComponent.h"
 #include "UI/SurvivorHUD.h"
 #include "World/ResourceNode.h"
+#include "World/WorldPickup.h"
 #include "Wildlife/AnimalBase.h"
 #include "Core/InteractableInterface.h"
+#include "Core/BiomeSurvivorGameMode.h"
+#include "Inventory/ItemDatabase.h"
 #include "BiomeSurvivor.h"
 
 #include "Camera/CameraComponent.h"
@@ -44,7 +47,8 @@ static UInputAction* CreateRuntimeInputAction(const FName& Name, EInputActionVal
 static UInputMappingContext* CreateDefaultMappingContext(
 	UInputAction* Move, UInputAction* Look, UInputAction* Jump, UInputAction* Sprint,
 	UInputAction* Crouch, UInputAction* Interact, UInputAction* Attack, UInputAction* Block,
-	UInputAction* Dodge, UInputAction* ToggleCamera, UInputAction* Pause, UInputAction* Inventory)
+	UInputAction* Dodge, UInputAction* ToggleCamera, UInputAction* Pause, UInputAction* Inventory,
+	UInputAction* QB1, UInputAction* QB2, UInputAction* QB3, UInputAction* QB4)
 {
 	UInputMappingContext* IMC = NewObject<UInputMappingContext>(GetTransientPackage(), TEXT("IMC_DefaultRuntime"));
 
@@ -104,6 +108,12 @@ static UInputMappingContext* CreateDefaultMappingContext(
 
 	// Tab -> Inventory
 	IMC->MapKey(Inventory, EKeys::Tab);
+
+	// Number keys -> Quickbar
+	IMC->MapKey(QB1, EKeys::One);
+	IMC->MapKey(QB2, EKeys::Two);
+	IMC->MapKey(QB3, EKeys::Three);
+	IMC->MapKey(QB4, EKeys::Four);
 
 	return IMC;
 }
@@ -233,6 +243,13 @@ void ASurvivorCharacter::BeginPlay()
 	if (!ToggleCameraAction) ToggleCameraAction = CreateRuntimeInputAction(TEXT("IA_ToggleCamera"), EInputActionValueType::Boolean);
 	if (!PauseAction) PauseAction = CreateRuntimeInputAction(TEXT("IA_Pause"), EInputActionValueType::Boolean);
 	if (!InventoryAction) InventoryAction = CreateRuntimeInputAction(TEXT("IA_Inventory"), EInputActionValueType::Boolean);
+	if (!QuickBar1Action) QuickBar1Action = CreateRuntimeInputAction(TEXT("IA_QB1"), EInputActionValueType::Boolean);
+	if (!QuickBar2Action) QuickBar2Action = CreateRuntimeInputAction(TEXT("IA_QB2"), EInputActionValueType::Boolean);
+	if (!QuickBar3Action) QuickBar3Action = CreateRuntimeInputAction(TEXT("IA_QB3"), EInputActionValueType::Boolean);
+	if (!QuickBar4Action) QuickBar4Action = CreateRuntimeInputAction(TEXT("IA_QB4"), EInputActionValueType::Boolean);
+
+	// Initialize runtime item database
+	FItemDatabase::Initialize();
 
 	// Create and register default input mapping context
 	if (APlayerController* PC = Cast<APlayerController>(GetController()))
@@ -242,7 +259,8 @@ void ASurvivorCharacter::BeginPlay()
 			UInputMappingContext* DefaultIMC = CreateDefaultMappingContext(
 				MoveAction, LookAction, JumpAction, SprintAction, CrouchAction,
 				InteractAction, AttackAction, BlockAction, DodgeAction, ToggleCameraAction,
-				PauseAction, InventoryAction);
+				PauseAction, InventoryAction,
+				QuickBar1Action, QuickBar2Action, QuickBar3Action, QuickBar4Action);
 			Subsystem->AddMappingContext(DefaultIMC, 0);
 
 			UE_LOG(LogBiomeSurvivor, Log, TEXT("Runtime input mapping context registered"));
@@ -256,6 +274,12 @@ void ASurvivorCharacter::Tick(float DeltaTime)
 
 	if (bIsDead) return;
 
+	// Sync sprint state to stats component
+	if (StatsComponent)
+	{
+		StatsComponent->bSprinting = bIsSprinting;
+	}
+
 	// Sprint stamina drain
 	if (bIsSprinting && StatsComponent)
 	{
@@ -268,6 +292,14 @@ void ASurvivorCharacter::Tick(float DeltaTime)
 			// Out of stamina, stop sprinting
 			HandleSprintStop();
 		}
+	}
+
+	// Overencumbered speed penalty
+	if (StatsComponent && StatsComponent->IsOverEncumbered())
+	{
+		float Penalty = FMath::Clamp(StatsComponent->CurrentWeight / StatsComponent->MaxWeight, 1.0f, 2.0f);
+		float BaseSpeed = bIsSprinting ? 650.0f : 450.0f;
+		GetCharacterMovement()->MaxWalkSpeed = BaseSpeed / Penalty;
 	}
 }
 
@@ -295,7 +327,10 @@ void ASurvivorCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		if (AttackAction)
 			EnhancedInput->BindAction(AttackAction, ETriggerEvent::Started, this, &ASurvivorCharacter::HandleAttack);
 		if (BlockAction)
+		{
 			EnhancedInput->BindAction(BlockAction, ETriggerEvent::Triggered, this, &ASurvivorCharacter::HandleBlock);
+			EnhancedInput->BindAction(BlockAction, ETriggerEvent::Completed, this, &ASurvivorCharacter::HandleBlockRelease);
+		}
 		if (DodgeAction)
 			EnhancedInput->BindAction(DodgeAction, ETriggerEvent::Started, this, &ASurvivorCharacter::HandleDodge);
 		if (ToggleCameraAction)
@@ -304,6 +339,16 @@ void ASurvivorCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 			EnhancedInput->BindAction(PauseAction, ETriggerEvent::Started, this, &ASurvivorCharacter::HandlePause);
 		if (InventoryAction)
 			EnhancedInput->BindAction(InventoryAction, ETriggerEvent::Started, this, &ASurvivorCharacter::HandleToggleInventory);
+
+		// Quickbar keys
+		if (QuickBar1Action)
+			EnhancedInput->BindAction(QuickBar1Action, ETriggerEvent::Started, this, &ASurvivorCharacter::HandleQuickBar1);
+		if (QuickBar2Action)
+			EnhancedInput->BindAction(QuickBar2Action, ETriggerEvent::Started, this, &ASurvivorCharacter::HandleQuickBar2);
+		if (QuickBar3Action)
+			EnhancedInput->BindAction(QuickBar3Action, ETriggerEvent::Started, this, &ASurvivorCharacter::HandleQuickBar3);
+		if (QuickBar4Action)
+			EnhancedInput->BindAction(QuickBar4Action, ETriggerEvent::Started, this, &ASurvivorCharacter::HandleQuickBar4);
 	}
 }
 
@@ -401,6 +446,14 @@ void ASurvivorCharacter::HandleBlock()
 	}
 }
 
+void ASurvivorCharacter::HandleBlockRelease()
+{
+	if (CombatComponent)
+	{
+		CombatComponent->StopBlock();
+	}
+}
+
 void ASurvivorCharacter::HandleDodge()
 {
 	if (bIsDead) return;
@@ -456,7 +509,26 @@ void ASurvivorCharacter::TryInteract()
 			HUD = Cast<ASurvivorHUD>(PC->GetHUD());
 		}
 
-		// 1. Try IInteractableInterface
+		// 1. Try WorldPickup
+		if (AWorldPickup* Pickup = Cast<AWorldPickup>(HitActor))
+		{
+			if (Pickup->PickUp(this))
+			{
+				if (HUD)
+				{
+					HUD->ShowNotification(
+						FText::FromString(FString::Printf(TEXT("Picked up %s x%d"), *Pickup->ItemID.ToString(), Pickup->ItemCount)),
+						1.5f);
+				}
+			}
+			else if (HUD)
+			{
+				HUD->ShowNotification(FText::FromString(TEXT("Inventory full!")), 1.5f);
+			}
+			return;
+		}
+
+		// 2. Try IInteractableInterface
 		if (HitActor->GetClass()->ImplementsInterface(UInteractableInterface::StaticClass()))
 		{
 			IInteractableInterface::Execute_Interact(HitActor, this);
@@ -465,7 +537,7 @@ void ASurvivorCharacter::TryInteract()
 			return;
 		}
 
-		// 2. Try resource node harvesting
+		// 3. Try resource node harvesting
 		if (AResourceNode* ResourceNode = Cast<AResourceNode>(HitActor))
 		{
 			if (ResourceNode->IsAvailable())
@@ -490,7 +562,7 @@ void ASurvivorCharacter::TryInteract()
 			return;
 		}
 
-		// 3. Try harvesting dead animal
+		// 4. Try harvesting dead animal
 		if (AAnimalBase* Animal = Cast<AAnimalBase>(HitActor))
 		{
 			if (Animal->IsDead() && Animal->bHarvestable)
@@ -516,7 +588,7 @@ void ASurvivorCharacter::TryInteract()
 			return;
 		}
 
-		// 4. Generic interaction fallback
+		// 5. Generic interaction fallback
 		OnInteract.Broadcast(HitActor);
 		UE_LOG(LogBiomeSurvivor, Verbose, TEXT("Interacted with: %s"), *HitActor->GetName());
 	}
@@ -552,13 +624,47 @@ void ASurvivorCharacter::Die()
 
 	// Disable movement and input
 	GetCharacterMovement()->DisableMovement();
-	DisableInput(Cast<APlayerController>(GetController()));
 
 	UE_LOG(LogBiomeSurvivor, Log, TEXT("Player died: %s"), *GetName());
 
-	// TODO: Drop inventory items on ground
-	// TODO: Play death animation
-	// TODO: Trigger respawn via GameMode
+	// Drop all inventory items as world pickups
+	if (InventoryComponent)
+	{
+		FVector DropBase = GetActorLocation() + FVector(0, 0, 50.0f);
+		const TArray<FItemInstance>& Items = InventoryComponent->GetAllItems();
+		for (int32 i = 0; i < Items.Num(); ++i)
+		{
+			if (!Items[i].IsEmpty())
+			{
+				// Scatter drops in a small radius
+				FVector Offset(FMath::RandRange(-100.f, 100.f), FMath::RandRange(-100.f, 100.f), 0.f);
+				AWorldPickup::SpawnPickup(GetWorld(), DropBase + Offset, Items[i].ItemID, Items[i].StackCount);
+			}
+		}
+		// Clear inventory after dropping
+		for (int32 i = 0; i < Items.Num(); ++i)
+		{
+			if (!Items[i].IsEmpty())
+			{
+				InventoryComponent->RemoveItemFromSlot(i);
+			}
+		}
+	}
+
+	// Show death screen
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		if (ASurvivorHUD* HUD = Cast<ASurvivorHUD>(PC->GetHUD()))
+		{
+			HUD->ShowDeathScreen();
+		}
+
+		// Respawn after delay via GameMode
+		if (ABiomeSurvivorGameMode* GM = Cast<ABiomeSurvivorGameMode>(GetWorld()->GetAuthGameMode()))
+		{
+			GM->RespawnPlayer(PC, 5.0f);
+		}
+	}
 }
 
 // ============ MENU HANDLERS ============
@@ -587,6 +693,60 @@ void ASurvivorCharacter::HandleToggleInventory()
 
 	if (ASurvivorHUD* HUD = Cast<ASurvivorHUD>(PC->GetHUD()))
 	{
-		HUD->ShowNotification(FText::FromString(TEXT("Inventory coming soon...")), 2.0f);
+		HUD->ToggleInventory();
+	}
+}
+
+// ============ QUICKBAR HANDLERS ============
+
+void ASurvivorCharacter::HandleQuickBar1()
+{
+	if (bIsDead || !InventoryComponent) return;
+	int32 Slot = InventoryComponent->GetQuickBarSlot(0);
+	if (Slot >= 0)
+	{
+		InventoryComponent->UseItem(Slot);
+		if (APlayerController* PC = Cast<APlayerController>(GetController()))
+			if (ASurvivorHUD* HUD = Cast<ASurvivorHUD>(PC->GetHUD()))
+				HUD->ShowNotification(FText::FromString(TEXT("Used quickbar slot 1")), 1.0f);
+	}
+}
+
+void ASurvivorCharacter::HandleQuickBar2()
+{
+	if (bIsDead || !InventoryComponent) return;
+	int32 Slot = InventoryComponent->GetQuickBarSlot(1);
+	if (Slot >= 0)
+	{
+		InventoryComponent->UseItem(Slot);
+		if (APlayerController* PC = Cast<APlayerController>(GetController()))
+			if (ASurvivorHUD* HUD = Cast<ASurvivorHUD>(PC->GetHUD()))
+				HUD->ShowNotification(FText::FromString(TEXT("Used quickbar slot 2")), 1.0f);
+	}
+}
+
+void ASurvivorCharacter::HandleQuickBar3()
+{
+	if (bIsDead || !InventoryComponent) return;
+	int32 Slot = InventoryComponent->GetQuickBarSlot(2);
+	if (Slot >= 0)
+	{
+		InventoryComponent->UseItem(Slot);
+		if (APlayerController* PC = Cast<APlayerController>(GetController()))
+			if (ASurvivorHUD* HUD = Cast<ASurvivorHUD>(PC->GetHUD()))
+				HUD->ShowNotification(FText::FromString(TEXT("Used quickbar slot 3")), 1.0f);
+	}
+}
+
+void ASurvivorCharacter::HandleQuickBar4()
+{
+	if (bIsDead || !InventoryComponent) return;
+	int32 Slot = InventoryComponent->GetQuickBarSlot(3);
+	if (Slot >= 0)
+	{
+		InventoryComponent->UseItem(Slot);
+		if (APlayerController* PC = Cast<APlayerController>(GetController()))
+			if (ASurvivorHUD* HUD = Cast<ASurvivorHUD>(PC->GetHUD()))
+				HUD->ShowNotification(FText::FromString(TEXT("Used quickbar slot 4")), 1.0f);
 	}
 }

@@ -1,7 +1,9 @@
 // Copyright Biome Survivor. All Rights Reserved.
 
 #include "Inventory/InventoryComponent.h"
+#include "Inventory/ItemDatabase.h"
 #include "Player/PlayerStatsComponent.h"
+#include "World/WorldPickup.h"
 #include "BiomeSurvivor.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/AssetManager.h"
@@ -357,8 +359,14 @@ bool UInventoryComponent::DropItem(int32 SlotIndex, int32 Count)
 	FItemInstance Removed = RemoveItemFromSlot(SlotIndex, Count);
 	if (Removed.IsEmpty()) return false;
 
-	// TODO: Spawn pickup actor in world at player's feet
-	// For now, items are just removed
+	// Spawn pickup actor in world at player's feet
+	AActor* Owner = GetOwner();
+	if (Owner && Owner->GetWorld())
+	{
+		FVector DropLocation = Owner->GetActorLocation() + Owner->GetActorForwardVector() * 100.0f + FVector(0, 0, 50.0f);
+		AWorldPickup::SpawnPickup(Owner->GetWorld(), DropLocation, Removed.ItemID, Removed.StackCount);
+	}
+
 	UE_LOG(LogBiomeSurvivor, Log, TEXT("Dropped %d x %s"), Removed.StackCount, *Removed.ItemID.ToString());
 	return true;
 }
@@ -388,6 +396,11 @@ const UItemDefinition* UInventoryComponent::GetItemDefinition(FName ItemID)
 {
 	if (ItemID.IsNone()) return nullptr;
 
+	// First try runtime item database
+	const UItemDefinition* RuntimeDef = FItemDatabase::Get(ItemID);
+	if (RuntimeDef) return RuntimeDef;
+
+	// Fallback to asset manager
 	UAssetManager& Manager = UAssetManager::Get();
 	FPrimaryAssetId AssetId("ItemDefinition", ItemID);
 	FSoftObjectPath Path = Manager.GetPrimaryAssetPath(AssetId);
