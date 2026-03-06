@@ -119,7 +119,7 @@ public:
 
 	/** Max interaction distance in cm. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
-	float InteractDistance = 300.0f;
+	float InteractDistance = 500.0f;
 
 	/** Fires when the player interacts with something. */
 	UPROPERTY(BlueprintAssignable, Category = "Events")

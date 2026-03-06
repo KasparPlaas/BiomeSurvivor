@@ -8,6 +8,7 @@
 
 class UStaticMeshComponent;
 class USphereComponent;
+class UMaterialInstanceDynamic;
 
 /**
  * Resource types that can be gathered from world nodes
@@ -75,6 +76,10 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UStaticMeshComponent> ResourceMesh;
+
+	/** Additional mesh for tree canopies etc. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UStaticMeshComponent> SecondaryMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USphereComponent> InteractionSphere;

@@ -8,6 +8,8 @@
 #include "UI/SurvivorHUD.h"
 #include "World/DayNightCycle.h"
 #include "World/WeatherSystem.h"
+#include "World/ResourceNode.h"
+#include "Wildlife/AnimalBase.h"
 #include "GameFramework/GameSession.h"
 #include "BiomeSurvivor.h"
 #include "GameFramework/PlayerStart.h"
@@ -151,4 +153,195 @@ void ABiomeSurvivorGameMode::SpawnEssentialActors()
 		World->SpawnActor<AWeatherSystem>(AWeatherSystem::StaticClass(), FTransform::Identity, Params);
 		UE_LOG(LogBiomeSurvivor, Log, TEXT("Auto-spawned WeatherSystem"));
 	}
+
+	// Spawn world resources and wildlife
+	SpawnWorldResources();
+	SpawnWildlife();
+}
+
+void ABiomeSurvivorGameMode::SpawnWorldResources()
+{
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	auto SpawnResource = [&](FVector Location, EResourceNodeType Type, FText Name, float Health,
+		FName YieldItem, int32 BaseQty, int32 BonusQty, float RespawnTime)
+	{
+		FTransform SpawnTransform(FRotator::ZeroRotator, Location);
+		AResourceNode* Node = World->SpawnActorDeferred<AResourceNode>(
+			AResourceNode::StaticClass(), SpawnTransform);
+		if (Node)
+		{
+			Node->ResourceType = Type;
+			Node->ResourceName = Name;
+			Node->MaxHealth = Health;
+			Node->CurrentHealth = Health;
+			Node->RespawnTimeSeconds = RespawnTime;
+
+			FResourceYield Yield;
+			Yield.ItemID = YieldItem;
+			Yield.BaseQuantity = BaseQty;
+			Yield.BonusQuantity = BonusQty;
+			Yield.DropChance = 1.0f;
+			Node->HarvestYields.Add(Yield);
+
+			Node->FinishSpawning(SpawnTransform);
+		}
+		return Node;
+	};
+
+	// ---- TREES (spread around the terrain) ----
+	const float TerrainHalf = 15000.0f; // Terrain radius
+	FRandomStream Rand(42); // Deterministic seed
+
+	for (int32 i = 0; i < 20; ++i)
+	{
+		FVector Pos(
+			Rand.FRandRange(-TerrainHalf, TerrainHalf),
+			Rand.FRandRange(-TerrainHalf, TerrainHalf),
+			100.0f
+		);
+		SpawnResource(Pos, EResourceNodeType::Tree, FText::FromString(TEXT("Pine Tree")),
+			150.0f, FName("Wood"), 2, 2, 300.0f);
+	}
+
+	// ---- ROCKS ----
+	for (int32 i = 0; i < 12; ++i)
+	{
+		FVector Pos(
+			Rand.FRandRange(-TerrainHalf, TerrainHalf),
+			Rand.FRandRange(-TerrainHalf, TerrainHalf),
+			50.0f
+		);
+		SpawnResource(Pos, EResourceNodeType::Rock, FText::FromString(TEXT("Stone Boulder")),
+			200.0f, FName("Stone"), 1, 2, 600.0f);
+	}
+
+	// ---- BERRY BUSHES ----
+	for (int32 i = 0; i < 8; ++i)
+	{
+		FVector Pos(
+			Rand.FRandRange(-TerrainHalf * 0.5f, TerrainHalf * 0.5f),
+			Rand.FRandRange(-TerrainHalf * 0.5f, TerrainHalf * 0.5f),
+			50.0f
+		);
+		SpawnResource(Pos, EResourceNodeType::BerryBush, FText::FromString(TEXT("Berry Bush")),
+			30.0f, FName("Berries"), 3, 3, 120.0f);
+	}
+
+	// ---- FIBER PLANTS ----
+	for (int32 i = 0; i < 6; ++i)
+	{
+		FVector Pos(
+			Rand.FRandRange(-TerrainHalf * 0.7f, TerrainHalf * 0.7f),
+			Rand.FRandRange(-TerrainHalf * 0.7f, TerrainHalf * 0.7f),
+			50.0f
+		);
+		SpawnResource(Pos, EResourceNodeType::FiberPlant, FText::FromString(TEXT("Fiber Plant")),
+			20.0f, FName("Fiber"), 2, 2, 90.0f);
+	}
+
+	UE_LOG(LogBiomeSurvivor, Log, TEXT("Spawned world resources: 20 trees, 12 rocks, 8 bushes, 6 fiber"));
+}
+
+void ABiomeSurvivorGameMode::SpawnWildlife()
+{
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	auto SpawnAnimal = [&](FVector Location, FName ID, FText Name, EAnimalBehavior Behavior,
+		float HP, float WalkSpd, float RunSpd, float AtkDmg, float DetectRange,
+		FName LootItem, int32 LootMin, int32 LootMax)
+	{
+		FTransform SpawnTransform(FRotator::ZeroRotator, Location);
+		AAnimalBase* Animal = World->SpawnActorDeferred<AAnimalBase>(
+			AAnimalBase::StaticClass(), SpawnTransform);
+		if (Animal)
+		{
+			Animal->AnimalID = ID;
+			Animal->AnimalName = Name;
+			Animal->BehaviorType = Behavior;
+			Animal->MaxHealth = HP;
+			Animal->Health = HP;
+			Animal->WalkSpeed = WalkSpd;
+			Animal->RunSpeed = RunSpd;
+			Animal->AttackDamage = AtkDmg;
+			Animal->DetectionRadius = DetectRange;
+
+			FAnimalLootDrop Loot;
+			Loot.ItemID = LootItem;
+			Loot.MinCount = LootMin;
+			Loot.MaxCount = LootMax;
+			Loot.DropChance = 1.0f;
+			Animal->LootTable.Add(Loot);
+
+			// Second loot drop (hide/leather)
+			FAnimalLootDrop HideLoot;
+			HideLoot.ItemID = FName("AnimalHide");
+			HideLoot.MinCount = 1;
+			HideLoot.MaxCount = 2;
+			HideLoot.DropChance = 0.8f;
+			Animal->LootTable.Add(HideLoot);
+
+			Animal->FinishSpawning(SpawnTransform);
+		}
+		return Animal;
+	};
+
+	const float TerrainHalf = 15000.0f;
+	FRandomStream Rand(123);
+
+	// ---- DEER (passive, flee from player) ----
+	for (int32 i = 0; i < 6; ++i)
+	{
+		FVector Pos(
+			Rand.FRandRange(-TerrainHalf * 0.8f, TerrainHalf * 0.8f),
+			Rand.FRandRange(-TerrainHalf * 0.8f, TerrainHalf * 0.8f),
+			100.0f
+		);
+		SpawnAnimal(Pos, FName("Deer"), FText::FromString(TEXT("Deer")),
+			EAnimalBehavior::Passive, 80.0f, 200.0f, 700.0f, 0.0f, 2500.0f,
+			FName("RawMeat"), 2, 4);
+	}
+
+	// ---- WOLVES (aggressive, hunt player) ----
+	for (int32 i = 0; i < 3; ++i)
+	{
+		FVector Pos(
+			Rand.FRandRange(-TerrainHalf * 0.6f, TerrainHalf * 0.6f),
+			Rand.FRandRange(-TerrainHalf * 0.6f, TerrainHalf * 0.6f),
+			100.0f
+		);
+		SpawnAnimal(Pos, FName("Wolf"), FText::FromString(TEXT("Wolf")),
+			EAnimalBehavior::Aggressive, 120.0f, 250.0f, 800.0f, 20.0f, 3000.0f,
+			FName("RawMeat"), 1, 3);
+	}
+
+	// ---- RABBITS (passive, flee quickly) ----
+	for (int32 i = 0; i < 5; ++i)
+	{
+		FVector Pos(
+			Rand.FRandRange(-TerrainHalf * 0.7f, TerrainHalf * 0.7f),
+			Rand.FRandRange(-TerrainHalf * 0.7f, TerrainHalf * 0.7f),
+			100.0f
+		);
+		SpawnAnimal(Pos, FName("Rabbit"), FText::FromString(TEXT("Rabbit")),
+			EAnimalBehavior::Passive, 20.0f, 180.0f, 900.0f, 0.0f, 1500.0f,
+			FName("RawMeat"), 1, 1);
+	}
+
+	// ---- BOARS (territorial) ----
+	for (int32 i = 0; i < 3; ++i)
+	{
+		FVector Pos(
+			Rand.FRandRange(-TerrainHalf * 0.5f, TerrainHalf * 0.5f),
+			Rand.FRandRange(-TerrainHalf * 0.5f, TerrainHalf * 0.5f),
+			100.0f
+		);
+		SpawnAnimal(Pos, FName("Boar"), FText::FromString(TEXT("Wild Boar")),
+			EAnimalBehavior::Territorial, 100.0f, 180.0f, 600.0f, 15.0f, 2000.0f,
+			FName("RawMeat"), 2, 3);
+	}
+
+	UE_LOG(LogBiomeSurvivor, Log, TEXT("Spawned wildlife: 6 deer, 3 wolves, 5 rabbits, 3 boars"));
 }

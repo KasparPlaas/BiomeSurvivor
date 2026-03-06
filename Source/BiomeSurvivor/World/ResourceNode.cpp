@@ -6,6 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
 #include "Inventory/InventoryComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 AResourceNode::AResourceNode()
 {
@@ -17,6 +18,26 @@ AResourceNode::AResourceNode()
 	ResourceMesh->SetCollisionProfileName(TEXT("BlockAll"));
 	ResourceMesh->SetGenerateOverlapEvents(false);
 	RootComponent = ResourceMesh;
+
+	// Find basic shapes
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> CylinderFinder(TEXT("/Engine/BasicShapes/Cylinder"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereFinder(TEXT("/Engine/BasicShapes/Sphere"));
+
+	// Default to cylinder (tree trunk)
+	if (CylinderFinder.Succeeded())
+	{
+		ResourceMesh->SetStaticMesh(CylinderFinder.Object);
+	}
+
+	// Secondary mesh (canopy for trees)
+	SecondaryMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SecondaryMesh"));
+	SecondaryMesh->SetupAttachment(RootComponent);
+	SecondaryMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SecondaryMesh->SetVisibility(false); // Hidden by default, enabled for trees
+	if (SphereFinder.Succeeded())
+	{
+		SecondaryMesh->SetStaticMesh(SphereFinder.Object);
+	}
 
 	// Interaction sphere
 	InteractionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("InteractionSphere"));
@@ -34,6 +55,91 @@ void AResourceNode::BeginPlay()
 
 	CurrentHealth = MaxHealth;
 	OriginalScale = GetActorScale3D();
+
+	// Apply appearance based on resource type
+	FLinearColor PrimaryColor = FLinearColor(0.4f, 0.3f, 0.2f);
+	FLinearColor SecondaryColor = FLinearColor(0.1f, 0.5f, 0.1f);
+
+	switch (ResourceType)
+	{
+	case EResourceNodeType::Tree:
+	{
+		// Tall cylinder trunk + sphere canopy
+		ResourceMesh->SetRelativeScale3D(FVector(0.5f, 0.5f, 3.0f));
+		PrimaryColor = FLinearColor(0.35f, 0.22f, 0.1f); // Brown trunk
+
+		SecondaryMesh->SetVisibility(true);
+		SecondaryMesh->SetRelativeLocation(FVector(0.0f, 0.0f, 350.0f));
+		SecondaryMesh->SetRelativeScale3D(FVector(3.0f, 3.0f, 2.5f));
+		SecondaryColor = FLinearColor(0.05f, 0.35f, 0.05f); // Green canopy
+		break;
+	}
+	case EResourceNodeType::Rock:
+	{
+		// Use sphere mesh for rock
+		static UStaticMesh* SphereMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere"));
+		if (SphereMesh)
+		{
+			ResourceMesh->SetStaticMesh(SphereMesh);
+		}
+		ResourceMesh->SetRelativeScale3D(FVector(1.2f, 1.0f, 0.7f));
+		PrimaryColor = FLinearColor(0.45f, 0.43f, 0.4f); // Gray stone
+		break;
+	}
+	case EResourceNodeType::OreDeposit:
+	{
+		static UStaticMesh* SphereMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere"));
+		if (SphereMesh)
+		{
+			ResourceMesh->SetStaticMesh(SphereMesh);
+		}
+		ResourceMesh->SetRelativeScale3D(FVector(0.9f, 0.8f, 0.6f));
+		PrimaryColor = FLinearColor(0.5f, 0.35f, 0.15f); // Rusty ore
+		break;
+	}
+	case EResourceNodeType::BerryBush:
+	{
+		static UStaticMesh* SphereMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere"));
+		if (SphereMesh)
+		{
+			ResourceMesh->SetStaticMesh(SphereMesh);
+		}
+		ResourceMesh->SetRelativeScale3D(FVector(0.8f, 0.8f, 0.6f));
+		PrimaryColor = FLinearColor(0.1f, 0.4f, 0.1f); // Green bush
+		break;
+	}
+	case EResourceNodeType::HerbPlant:
+	case EResourceNodeType::FiberPlant:
+	case EResourceNodeType::CattailReed:
+	{
+		ResourceMesh->SetRelativeScale3D(FVector(0.3f, 0.3f, 0.8f));
+		PrimaryColor = FLinearColor(0.15f, 0.45f, 0.1f);
+		break;
+	}
+	default:
+		break;
+	}
+
+	// Apply dynamic material to main mesh
+	UMaterialInterface* BaseMat = ResourceMesh->GetMaterial(0);
+	if (BaseMat)
+	{
+		UMaterialInstanceDynamic* DynMat = UMaterialInstanceDynamic::Create(BaseMat, this);
+		DynMat->SetVectorParameterValue(TEXT("BaseColor"), PrimaryColor);
+		ResourceMesh->SetMaterial(0, DynMat);
+	}
+
+	// Apply dynamic material to secondary mesh if visible
+	if (SecondaryMesh && SecondaryMesh->IsVisible())
+	{
+		UMaterialInterface* SecMat = SecondaryMesh->GetMaterial(0);
+		if (SecMat)
+		{
+			UMaterialInstanceDynamic* DynMat = UMaterialInstanceDynamic::Create(SecMat, this);
+			DynMat->SetVectorParameterValue(TEXT("BaseColor"), SecondaryColor);
+			SecondaryMesh->SetMaterial(0, DynMat);
+		}
+	}
 }
 
 void AResourceNode::Tick(float DeltaTime)

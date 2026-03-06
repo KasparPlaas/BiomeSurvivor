@@ -64,6 +64,12 @@ protected:
 	/** Spawn essential world actors (DayNightCycle, WeatherSystem) if not already placed. */
 	void SpawnEssentialActors();
 
+	/** Spawn resource nodes (trees, rocks, bushes) throughout the world. */
+	void SpawnWorldResources();
+
+	/** Spawn wildlife (deer, wolves, rabbits). */
+	void SpawnWildlife();
+
 	/** Timer handles for pending respawns. */
 	TMap<APlayerController*, FTimerHandle> PendingRespawns;
 };

@@ -10,6 +10,9 @@
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Hearing.h"
 #include "NavigationSystem.h"
+#include "Navigation/PathFollowingComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Engine/DamageEvents.h"
 
 const FName AAnimalAIController::BB_TargetActor = TEXT("TargetActor");
 const FName AAnimalAIController::BB_HomeLocation = TEXT("HomeLocation");
@@ -18,6 +21,8 @@ const FName AAnimalAIController::BB_AnimalState = TEXT("AnimalState");
 
 AAnimalAIController::AAnimalAIController()
 {
+	PrimaryActorTick.bCanEverTick = true;
+
 	// Setup AI Perception
 	AIPerceptionComp = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
 	SetPerceptionComponent(*AIPerceptionComp);
@@ -62,18 +67,9 @@ void AAnimalAIController::OnPossess(APawn* InPawn)
 	SightConfig->LoseSightRadius = Animal->DetectionRadius * 1.25f;
 	AIPerceptionComp->ConfigureSense(*SightConfig);
 
-	// Run behavior tree
-	if (BehaviorTreeAsset)
-	{
-		RunBehaviorTree(BehaviorTreeAsset);
-
-		// Set home location in blackboard
-		UBlackboardComponent* BB = GetBlackboardComponent();
-		if (BB)
-		{
-			BB->SetValueAsVector(BB_HomeLocation, Animal->GetActorLocation());
-		}
-	}
+	// Start in Wandering state
+	Animal->SetState(EAnimalState::Wandering);
+	WanderPauseTimer = FMath::FRandRange(1.0f, 3.0f);
 
 	UE_LOG(LogBiomeSurvivor, Log, TEXT("AI Controller possessed: %s (%s behavior)"),
 		*Animal->AnimalName.ToString(), *UEnum::GetValueAsString(Animal->BehaviorType));
@@ -81,20 +77,12 @@ void AAnimalAIController::OnPossess(APawn* InPawn)
 
 void AAnimalAIController::SetTargetActor(AActor* Target)
 {
-	UBlackboardComponent* BB = GetBlackboardComponent();
-	if (BB)
-	{
-		BB->SetValueAsObject(BB_TargetActor, Target);
-	}
+	CurrentTarget = Target;
 }
 
 void AAnimalAIController::ClearTarget()
 {
-	UBlackboardComponent* BB = GetBlackboardComponent();
-	if (BB)
-	{
-		BB->ClearValue(BB_TargetActor);
-	}
+	CurrentTarget = nullptr;
 }
 
 FVector AAnimalAIController::GetRandomPatrolPoint() const
@@ -179,4 +167,173 @@ void AAnimalAIController::OnPerceptionUpdated(const TArray<AActor*>& UpdatedActo
 			}
 		}
 	}
+}
+
+// ============ TICK-BASED AI STATE MACHINE ============
+
+void AAnimalAIController::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	AAnimalBase* Animal = Cast<AAnimalBase>(GetPawn());
+	if (!Animal || Animal->IsDead()) return;
+
+	switch (Animal->CurrentState)
+	{
+	case EAnimalState::Idle:
+		ProcessIdle(DeltaTime, Animal);
+		break;
+	case EAnimalState::Wandering:
+		ProcessWander(DeltaTime, Animal);
+		break;
+	case EAnimalState::Fleeing:
+		ProcessFlee(DeltaTime, Animal);
+		break;
+	case EAnimalState::Attacking:
+		ProcessAttack(DeltaTime, Animal);
+		break;
+	case EAnimalState::Stalking:
+		ProcessStalking(DeltaTime, Animal);
+		break;
+	case EAnimalState::Feeding:
+	case EAnimalState::Sleeping:
+		// Passive states - just wait
+		WanderPauseTimer -= DeltaTime;
+		if (WanderPauseTimer <= 0.0f)
+		{
+			Animal->SetState(EAnimalState::Wandering);
+		}
+		break;
+	default:
+		break;
+	}
+
+	// Cooldown attack timer
+	if (AIAttackTimer > 0.0f)
+	{
+		AIAttackTimer -= DeltaTime;
+	}
+}
+
+void AAnimalAIController::ProcessIdle(float DeltaTime, AAnimalBase* Animal)
+{
+	WanderPauseTimer -= DeltaTime;
+	if (WanderPauseTimer <= 0.0f)
+	{
+		Animal->SetState(EAnimalState::Wandering);
+		bIsMovingToPoint = false;
+	}
+}
+
+void AAnimalAIController::ProcessWander(float DeltaTime, AAnimalBase* Animal)
+{
+	if (!bIsMovingToPoint)
+	{
+		// Pick a new random patrol point
+		FVector PatrolPoint = GetRandomPatrolPoint();
+		if (!PatrolPoint.IsZero())
+		{
+			MoveToLocation(PatrolPoint, 50.0f);
+			bIsMovingToPoint = true;
+		}
+	}
+	else
+	{
+		// Check if we've reached our destination
+		EPathFollowingStatus::Type Status = GetMoveStatus();
+		if (Status != EPathFollowingStatus::Moving)
+		{
+			bIsMovingToPoint = false;
+			// Pause before next wander
+			Animal->SetState(EAnimalState::Idle);
+			WanderPauseTimer = FMath::FRandRange(2.0f, 6.0f);
+		}
+	}
+}
+
+void AAnimalAIController::ProcessFlee(float DeltaTime, AAnimalBase* Animal)
+{
+	if (!CurrentTarget)
+	{
+		Animal->SetState(EAnimalState::Wandering);
+		return;
+	}
+
+	float DistToTarget = FVector::Dist(Animal->GetActorLocation(), CurrentTarget->GetActorLocation());
+
+	// If far enough away, stop fleeing
+	if (DistToTarget > Animal->FleeDistance)
+	{
+		ClearTarget();
+		StopMovement();
+		Animal->SetState(EAnimalState::Wandering);
+		return;
+	}
+
+	// Move away from target
+	FVector FleeDir = (Animal->GetActorLocation() - CurrentTarget->GetActorLocation()).GetSafeNormal();
+	FVector FleeTarget = Animal->GetActorLocation() + FleeDir * 800.0f;
+	MoveToLocation(FleeTarget, 50.0f);
+}
+
+void AAnimalAIController::ProcessAttack(float DeltaTime, AAnimalBase* Animal)
+{
+	if (!CurrentTarget)
+	{
+		Animal->SetState(EAnimalState::Wandering);
+		return;
+	}
+
+	float DistToTarget = FVector::Dist(Animal->GetActorLocation(), CurrentTarget->GetActorLocation());
+
+	// If target is out of detection range, give up
+	if (DistToTarget > Animal->DetectionRadius * 1.5f)
+	{
+		ClearTarget();
+		StopMovement();
+		Animal->SetState(EAnimalState::Wandering);
+		return;
+	}
+
+	if (DistToTarget <= Animal->AttackRange)
+	{
+		// In attack range - deal damage
+		StopMovement();
+
+		if (AIAttackTimer <= 0.0f)
+		{
+			FDamageEvent DamageEvent;
+			CurrentTarget->TakeDamage(Animal->AttackDamage, DamageEvent, this, Animal);
+			AIAttackTimer = Animal->AttackCooldown;
+
+			UE_LOG(LogBiomeSurvivor, Verbose, TEXT("%s attacked for %.1f damage"),
+				*Animal->AnimalName.ToString(), Animal->AttackDamage);
+		}
+	}
+	else
+	{
+		// Chase target
+		MoveToActor(CurrentTarget, Animal->AttackRange * 0.8f);
+	}
+}
+
+void AAnimalAIController::ProcessStalking(float DeltaTime, AAnimalBase* Animal)
+{
+	if (!CurrentTarget)
+	{
+		Animal->SetState(EAnimalState::Wandering);
+		return;
+	}
+
+	float DistToTarget = FVector::Dist(Animal->GetActorLocation(), CurrentTarget->GetActorLocation());
+
+	// If close enough, switch to attacking
+	if (DistToTarget < Animal->AttackRange * 2.0f)
+	{
+		Animal->SetState(EAnimalState::Attacking);
+		return;
+	}
+
+	// Slowly approach
+	MoveToActor(CurrentTarget, Animal->AttackRange * 1.5f);
 }

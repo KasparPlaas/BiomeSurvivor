@@ -73,4 +73,26 @@ protected:
 
 	UFUNCTION()
 	void OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors);
+
+	virtual void Tick(float DeltaTime) override;
+
+	/** Current target tracked by perception */
+	UPROPERTY()
+	TObjectPtr<AActor> CurrentTarget;
+
+	/** Timer for wander pauses */
+	float WanderPauseTimer = 0.0f;
+
+	/** Timer for attack cooldown */
+	float AIAttackTimer = 0.0f;
+
+	/** Whether currently moving to a location */
+	bool bIsMovingToPoint = false;
+
+	/** Handle AI movement for each state */
+	void ProcessIdle(float DeltaTime, class AAnimalBase* Animal);
+	void ProcessWander(float DeltaTime, class AAnimalBase* Animal);
+	void ProcessFlee(float DeltaTime, class AAnimalBase* Animal);
+	void ProcessAttack(float DeltaTime, class AAnimalBase* Animal);
+	void ProcessStalking(float DeltaTime, class AAnimalBase* Animal);
 };

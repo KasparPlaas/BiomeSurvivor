@@ -13,6 +13,9 @@
 #include "Survival/MedicalComponent.h"
 #include "Survival/SleepComponent.h"
 #include "UI/SurvivorHUD.h"
+#include "World/ResourceNode.h"
+#include "Wildlife/AnimalBase.h"
+#include "Core/InteractableInterface.h"
 #include "BiomeSurvivor.h"
 
 #include "Camera/CameraComponent.h"
@@ -20,12 +23,14 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputAction.h"
 #include "InputActionValue.h"
 #include "InputMappingContext.h"
 #include "Net/UnrealNetwork.h"
+#include "Engine/DamageEvents.h"
 
 // ---- Helper: create a transient InputAction with given ValueType ----
 static UInputAction* CreateRuntimeInputAction(const FName& Name, EInputActionValueType ValueType)
@@ -192,6 +197,28 @@ void ASurvivorCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	UE_LOG(LogBiomeSurvivor, Log, TEXT("SurvivorCharacter spawned: %s"), *GetName());
+
+	// Apply colored materials to body
+	if (BodyMesh)
+	{
+		UMaterialInterface* BaseMat = BodyMesh->GetMaterial(0);
+		if (BaseMat)
+		{
+			UMaterialInstanceDynamic* DynMat = UMaterialInstanceDynamic::Create(BaseMat, this);
+			DynMat->SetVectorParameterValue(TEXT("BaseColor"), FLinearColor(0.15f, 0.35f, 0.15f)); // Dark green shirt
+			BodyMesh->SetMaterial(0, DynMat);
+		}
+	}
+	if (HeadMesh)
+	{
+		UMaterialInterface* BaseMat = HeadMesh->GetMaterial(0);
+		if (BaseMat)
+		{
+			UMaterialInstanceDynamic* DynMat = UMaterialInstanceDynamic::Create(BaseMat, this);
+			DynMat->SetVectorParameterValue(TEXT("BaseColor"), FLinearColor(0.85f, 0.7f, 0.55f)); // Skin tone
+			HeadMesh->SetMaterial(0, DynMat);
+		}
+	}
 
 	// Auto-create input actions at runtime if none set via Blueprint
 	if (!MoveAction)   MoveAction   = CreateRuntimeInputAction(TEXT("IA_Move"),   EInputActionValueType::Axis2D);
@@ -420,12 +447,78 @@ void ASurvivorCharacter::TryInteract()
 	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params))
 	{
 		AActor* HitActor = HitResult.GetActor();
-		if (HitActor)
+		if (!HitActor) return;
+
+		// Get HUD for notifications
+		ASurvivorHUD* HUD = nullptr;
+		if (APlayerController* PC = Cast<APlayerController>(GetController()))
 		{
-			// Try to call the Interact interface on the hit actor
-			OnInteract.Broadcast(HitActor);
-			UE_LOG(LogBiomeSurvivor, Verbose, TEXT("Interacted with: %s"), *HitActor->GetName());
+			HUD = Cast<ASurvivorHUD>(PC->GetHUD());
 		}
+
+		// 1. Try IInteractableInterface
+		if (HitActor->GetClass()->ImplementsInterface(UInteractableInterface::StaticClass()))
+		{
+			IInteractableInterface::Execute_Interact(HitActor, this);
+			OnInteract.Broadcast(HitActor);
+			UE_LOG(LogBiomeSurvivor, Log, TEXT("Interacted via interface with: %s"), *HitActor->GetName());
+			return;
+		}
+
+		// 2. Try resource node harvesting
+		if (AResourceNode* ResourceNode = Cast<AResourceNode>(HitActor))
+		{
+			if (ResourceNode->IsAvailable())
+			{
+				// Bare hands = 10 damage, no tool type
+				bool bHarvested = ResourceNode->HarvestNode(this, 10.0f, NAME_None);
+				if (bHarvested && HUD)
+				{
+					FString ResourceStr = ResourceNode->ResourceName.IsEmpty()
+						? UEnum::GetValueAsString(ResourceNode->ResourceType)
+						: ResourceNode->ResourceName.ToString();
+					HUD->ShowNotification(
+						FText::FromString(FString::Printf(TEXT("Gathering %s..."), *ResourceStr)),
+						1.5f);
+				}
+				OnInteract.Broadcast(HitActor);
+			}
+			else if (HUD)
+			{
+				HUD->ShowNotification(FText::FromString(TEXT("Resource depleted")), 1.5f);
+			}
+			return;
+		}
+
+		// 3. Try harvesting dead animal
+		if (AAnimalBase* Animal = Cast<AAnimalBase>(HitActor))
+		{
+			if (Animal->IsDead() && Animal->bHarvestable)
+			{
+				Animal->Harvest(this);
+				if (HUD)
+				{
+					HUD->ShowNotification(
+						FText::FromString(FString::Printf(TEXT("Harvested %s"), *Animal->AnimalName.ToString())),
+						2.0f);
+				}
+				OnInteract.Broadcast(HitActor);
+			}
+			else if (!Animal->IsDead() && HUD)
+			{
+				// Punch the animal (bare hands attack)
+				Animal->OnDamaged(5.0f, this);
+				HUD->ShowNotification(
+					FText::FromString(FString::Printf(TEXT("Hit %s!"), *Animal->AnimalName.ToString())),
+					1.0f);
+				OnInteract.Broadcast(HitActor);
+			}
+			return;
+		}
+
+		// 4. Generic interaction fallback
+		OnInteract.Broadcast(HitActor);
+		UE_LOG(LogBiomeSurvivor, Verbose, TEXT("Interacted with: %s"), *HitActor->GetName());
 	}
 }
 

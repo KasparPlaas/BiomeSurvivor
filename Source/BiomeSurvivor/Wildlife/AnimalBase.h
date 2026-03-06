@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Components/StaticMeshComponent.h"
 #include "AnimalBase.generated.h"
 
 /**
@@ -166,10 +167,21 @@ public:
 	UPROPERTY(BlueprintAssignable, Category="Animal")
 	FOnAnimalDied OnAnimalDied;
 
+	// ---- Visible Mesh ----
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Animal|Visual")
+	TObjectPtr<UStaticMeshComponent> AnimalBodyMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Animal|Visual")
+	TObjectPtr<UStaticMeshComponent> AnimalHeadMesh;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	/** Apply visual appearance (scale, color) based on AnimalID */
+	void ApplyAnimalAppearance();
 
 	FVector SpawnLocation;
 	float AttackCooldownTimer = 0.0f;

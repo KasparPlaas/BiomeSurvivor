@@ -1,0 +1,40 @@
+﻿Using bundled DotNet SDK version: 8.0.412 win-x64
+Running UnrealBuildTool: dotnet "..\..\Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.dll" BiomeSurvivorEditor Win64 Development -Project=c:\Users\Admin\Desktop\survival\BiomeSurvivor.uproject -WaitMutex -FromMsBuild
+Log file: C:\Users\Admin\AppData\Local\UnrealBuildTool\Log.txt
+Using 'git status' to determine working set for adaptive non-unity build (C:\Users\Admin\Desktop\survival).
+Creating makefile for BiomeSurvivorEditor (no existing makefile)
+UHT compiled-in object format Default
+Parsing headers for BiomeSurvivorEditor
+  Running Internal UnrealHeaderTool C:\Users\Admin\Desktop\survival\BiomeSurvivor.uproject C:\Users\Admin\Desktop\survival\Intermediate\Build\Win64\BiomeSurvivorEditor\Development\BiomeSurvivorEditor.uhtmanifest -WarningsAsErrors -installed
+UHT processed BiomeSurvivorEditor in 2.7496478 seconds (96 files written)
+Building BiomeSurvivorEditor...
+Using Visual Studio 2022 14.44.35223 toolchain (C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207) and Windows 10.0.22621.0 SDK (C:\Program Files (x86)\Windows Kits\10).
+[Adaptive Build] Excluded from BiomeSurvivor unity file: CombatComponent.cpp, SurvivorCharacter.cpp, DayNightCycle.cpp
+Determining max actions to execute in parallel (8 physical cores, 8 logical cores)
+  Executing up to 8 processes, one per physical core
+  Requested 1.5 GB memory per action, 7.98 GB available: limiting max parallel actions to 5
+Using Unreal Build Accelerator local executor to run 15 action(s)
+  Storage capacity 40Gb
+---- Starting trace: 260306_030630 ----
+UbaServer - Listening on 0.0.0.0:1345
+[1/15] Resource Default.rc2
+[2/15] Compile [x64] SharedPCH.UnrealEd.Project.ValApi.ValExpApi.Cpp20.cpp
+[3/15] Compile [x64] DayNightCycle.cpp
+[4/15] Compile [x64] CombatComponent.cpp
+[5/15] Compile [x64] Module.BiomeSurvivor.3.cpp
+[6/15] Compile [x64] Module.BiomeSurvivor.1.cpp
+[7/15] Compile [x64] Module.BiomeSurvivor.2.cpp
+[8/15] Compile [x64] Module.BiomeSurvivor.5.cpp
+[9/15] Compile [x64] Module.BiomeSurvivor.6.cpp
+[10/15] Compile [x64] Module.BiomeSurvivor.4.cpp
+[11/15] Compile [x64] SurvivorCharacter.cpp
+[12/15] Compile [x64] Module.BiomeSurvivor.7.cpp
+[13/15] Link [x64] UnrealEditor-BiomeSurvivor.lib
+[14/15] Link [x64] UnrealEditor-BiomeSurvivor.dll
+[15/15] WriteMetadata BiomeSurvivorEditor.target [NoUba]
+
+Trace written to file C:/Users/Admin/AppData/Local/UnrealBuildTool/Log.uba with size 12.5kb
+Total time in Unreal Build Accelerator local executor: 96.01 seconds
+
+Result: Succeeded
+Total execution time: 108.70 seconds
