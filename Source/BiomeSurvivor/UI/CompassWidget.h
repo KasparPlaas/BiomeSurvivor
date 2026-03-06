@@ -25,7 +25,7 @@ struct FCompassMarkerWidget
 };
 
 UCLASS()
-class BIOMESURVIOR_API UCompassWidget : public UUserWidget
+class BIOMESURVIVOR_API UCompassWidget : public UUserWidget
 {
     GENERATED_BODY()
 

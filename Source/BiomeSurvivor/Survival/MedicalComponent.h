@@ -42,7 +42,7 @@ struct FInjury
 };
 
 UCLASS(ClassGroup=(BiomeSurvivor), meta=(BlueprintSpawnableComponent))
-class BIOMESURVIOR_API UMedicalComponent : public UActorComponent
+class BIOMESURVIVOR_API UMedicalComponent : public UActorComponent
 {
 	GENERATED_BODY()
 

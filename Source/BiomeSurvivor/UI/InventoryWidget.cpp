@@ -18,7 +18,7 @@ void UInventoryWidget::InitializeInventory(UInventoryComponent* InInventory, UEq
 	if (InventoryComp)
 	{
 		// Bind to inventory changes for auto-refresh
-		InventoryComp->OnInventoryChanged.AddDynamic(this, &UInventoryWidget::RefreshInventory);
+		InventoryComp->OnInventoryChanged.AddDynamic(this, &UInventoryWidget::OnInventorySlotChanged);
 	}
 
 	RefreshInventory();
@@ -27,19 +27,19 @@ void UInventoryWidget::InitializeInventory(UInventoryComponent* InInventory, UEq
 void UInventoryWidget::RefreshInventory()
 {
 	// Refresh all slot widgets
-	for (UInventorySlotWidget* Slot : InventorySlots)
+	for (UInventorySlotWidget* SlotWidget : InventorySlots)
 	{
-		if (Slot) Slot->RefreshSlot();
+		if (SlotWidget) SlotWidget->RefreshSlot();
 	}
 
-	for (UInventorySlotWidget* Slot : QuickbarSlots)
+	for (UInventorySlotWidget* SlotWidget : QuickbarSlots)
 	{
-		if (Slot) Slot->RefreshSlot();
+		if (SlotWidget) SlotWidget->RefreshSlot();
 	}
 
-	for (UInventorySlotWidget* Slot : EquipmentSlots)
+	for (UInventorySlotWidget* SlotWidget : EquipmentSlots)
 	{
-		if (Slot) Slot->RefreshSlot();
+		if (SlotWidget) SlotWidget->RefreshSlot();
 	}
 }
 
@@ -68,7 +68,7 @@ void UInventoryWidget::DropAll()
 	if (!InventoryComp) return;
 
 	// Drop all items from inventory
-	for (int32 i = InventoryComp->GetMainSlotCount() - 1; i >= 0; --i)
+	for (int32 i = InventoryComp->MaxSlots - 1; i >= 0; --i)
 	{
 		const FItemInstance& Item = InventoryComp->GetItemAtSlot(i);
 		if (!Item.ItemID.IsNone())
@@ -112,8 +112,13 @@ FText UInventoryWidget::GetWeightText() const
 {
 	if (!InventoryComp) return FText::GetEmpty();
 
-	float Current = InventoryComp->GetCurrentWeight();
-	float Max = InventoryComp->GetMaxCarryWeight();
+	float Current = InventoryComp->GetTotalWeight();
+	float Max = 100.0f; // Default max carry weight in kg
 
 	return FText::FromString(FString::Printf(TEXT("%.1f / %.1f kg"), Current, Max));
+}
+
+void UInventoryWidget::OnInventorySlotChanged(int32 SlotIndex, const FItemInstance& Item)
+{
+	RefreshSlot(SlotIndex);
 }

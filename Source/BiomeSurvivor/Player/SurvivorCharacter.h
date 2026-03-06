@@ -33,7 +33,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteract, AActor*, InteractedActo
  * The character itself handles movement, camera, and input routing.
  */
 UCLASS(Blueprintable)
-class BIOMESURVIOR_API ASurvivorCharacter : public ACharacter
+class BIOMESURVIVOR_API ASurvivorCharacter : public ACharacter
 {
 	GENERATED_BODY()
 

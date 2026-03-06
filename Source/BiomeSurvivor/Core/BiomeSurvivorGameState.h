@@ -16,7 +16,7 @@
  * - Global resource respawn timers
  */
 UCLASS(Blueprintable)
-class BIOMESURVIOR_API ABiomeSurvivorGameState : public AGameStateBase
+class BIOMESURVIVOR_API ABiomeSurvivorGameState : public AGameStateBase
 {
 	GENERATED_BODY()
 

@@ -23,7 +23,7 @@ enum class EDetectionLevel : uint8
 };
 
 UCLASS(ClassGroup=(BiomeSurvivor), meta=(BlueprintSpawnableComponent))
-class BIOMESURVIOR_API UStealthComponent : public UActorComponent
+class BIOMESURVIVOR_API UStealthComponent : public UActorComponent
 {
 	GENERATED_BODY()
 

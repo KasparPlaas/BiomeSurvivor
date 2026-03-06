@@ -17,7 +17,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBuildingPlaced, ABuildingPiece*, 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnBuildModeToggled);
 
 UCLASS(ClassGroup=(BiomeSurvivor), meta=(BlueprintSpawnableComponent))
-class BIOMESURVIOR_API UBuildingComponent : public UActorComponent
+class BIOMESURVIVOR_API UBuildingComponent : public UActorComponent
 {
 	GENERATED_BODY()
 

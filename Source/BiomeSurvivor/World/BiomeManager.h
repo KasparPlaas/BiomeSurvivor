@@ -14,7 +14,7 @@ class UBoxComponent;
  * Place these in the level to define biome boundaries.
  */
 UCLASS(BlueprintType, Blueprintable)
-class BIOMESURVIOR_API ABiomeZone : public AActor
+class BIOMESURVIVOR_API ABiomeZone : public AActor
 {
 	GENERATED_BODY()
 
@@ -43,7 +43,7 @@ public:
  * Provides queries for biome data at any location.
  */
 UCLASS(BlueprintType, Blueprintable)
-class BIOMESURVIOR_API ABiomeManager : public AActor
+class BIOMESURVIVOR_API ABiomeManager : public AActor
 {
 	GENERATED_BODY()
 

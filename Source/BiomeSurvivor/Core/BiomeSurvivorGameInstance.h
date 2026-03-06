@@ -25,7 +25,7 @@ enum class ESessionType : uint8
 };
 
 UCLASS(Blueprintable)
-class BIOMESURVIOR_API UBiomeSurvivorGameInstance : public UGameInstance
+class BIOMESURVIVOR_API UBiomeSurvivorGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
 

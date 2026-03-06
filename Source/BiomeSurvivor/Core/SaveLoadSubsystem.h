@@ -10,7 +10,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSaveCompleted, bool, bSuccess);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLoadCompleted, bool, bSuccess);
 
 UCLASS()
-class BIOMESURVIOR_API USaveLoadSubsystem : public UGameInstanceSubsystem
+class BIOMESURVIVOR_API USaveLoadSubsystem : public UGameInstanceSubsystem
 {
     GENERATED_BODY()
 

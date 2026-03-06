@@ -11,7 +11,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteractableLost);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoldProgress, float, Progress);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class BIOMESURVIOR_API UInteractionComponent : public UActorComponent
+class BIOMESURVIVOR_API UInteractionComponent : public UActorComponent
 {
     GENERATED_BODY()
 

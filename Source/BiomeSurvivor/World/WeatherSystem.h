@@ -40,7 +40,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWeatherChanged, EWeatherType, Ol
  * and creates dynamic weather transitions.
  */
 UCLASS(BlueprintType, Blueprintable)
-class BIOMESURVIOR_API AWeatherSystem : public AActor
+class BIOMESURVIVOR_API AWeatherSystem : public AActor
 {
 	GENERATED_BODY()
 

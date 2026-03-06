@@ -225,12 +225,18 @@ void UCombatComponent::ApplyDamageToTarget(AActor* Target, float BaseDamage, TSu
 
 	float FinalDamage = CalculateDamage(BaseDamage, Target);
 
+	AController* InstigatorController = nullptr;
+	if (ACharacter* OwnerChar = Cast<ACharacter>(GetOwner()))
+	{
+		InstigatorController = OwnerChar->GetController();
+	}
+	TSubclassOf<UDamageType> FinalDamageType = DamageType ? DamageType : TSubclassOf<UDamageType>(UDamageType::StaticClass());
 	UGameplayStatics::ApplyDamage(
 		Target,
 		FinalDamage,
-		Cast<ACharacter>(GetOwner())->GetController(),
+		InstigatorController,
 		GetOwner(),
-		DamageType ? DamageType : UDamageType::StaticClass()
+		FinalDamageType
 	);
 
 	OnDamageDealt.Broadcast(Target, FinalDamage);

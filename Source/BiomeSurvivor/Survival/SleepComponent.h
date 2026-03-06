@@ -14,7 +14,7 @@
  */
 
 UCLASS(ClassGroup=(BiomeSurvivor), meta=(BlueprintSpawnableComponent))
-class BIOMESURVIOR_API USleepComponent : public UActorComponent
+class BIOMESURVIVOR_API USleepComponent : public UActorComponent
 {
 	GENERATED_BODY()
 

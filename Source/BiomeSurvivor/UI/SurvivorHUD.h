@@ -13,7 +13,7 @@ class USurvivorMainWidget;
  * Manages all UI widgets and their visibility states.
  */
 UCLASS(BlueprintType, Blueprintable)
-class BIOMESURVIOR_API ASurvivorHUD : public AHUD
+class BIOMESURVIVOR_API ASurvivorHUD : public AHUD
 {
 	GENERATED_BODY()
 

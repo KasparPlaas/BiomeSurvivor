@@ -130,7 +130,7 @@ struct FItemProtection
  * Defines all properties of an item type. Referenced by FName ID.
  */
 UCLASS(BlueprintType)
-class BIOMESURVIOR_API UItemDefinition : public UPrimaryDataAsset
+class BIOMESURVIVOR_API UItemDefinition : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
 

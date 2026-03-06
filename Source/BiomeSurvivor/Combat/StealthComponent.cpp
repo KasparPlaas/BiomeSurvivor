@@ -91,7 +91,10 @@ void UStealthComponent::GenerateNoise(float Intensity, float Radius)
 	
 	// Report noise event to AI perception system
 	// UAISense_Hearing will pick this up
-	MakeNoise(Intensity, Cast<APawn>(GetOwner()), GetOwner()->GetActorLocation(), Radius);
+	if (AActor* Owner = GetOwner())
+	{
+		Owner->MakeNoise(Intensity, Cast<APawn>(Owner), Owner->GetActorLocation(), Radius);
+	}
 
 	UE_LOG(LogBiomeSurvivor, Verbose, TEXT("Noise generated: %.2f intensity, %.0f radius"), Intensity, Radius);
 }

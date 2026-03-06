@@ -22,7 +22,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTimeOfDayChanged, bool, bIsNight)
  * Replicates time to all clients.
  */
 UCLASS(BlueprintType, Blueprintable)
-class BIOMESURVIOR_API ADayNightCycle : public AActor
+class BIOMESURVIVOR_API ADayNightCycle : public AActor
 {
 	GENERATED_BODY()
 

@@ -13,7 +13,7 @@
  */
 
 UCLASS(BlueprintType, Blueprintable)
-class BIOMESURVIOR_API AProjectileBase : public AActor
+class BIOMESURVIVOR_API AProjectileBase : public AActor
 {
 	GENERATED_BODY()
 

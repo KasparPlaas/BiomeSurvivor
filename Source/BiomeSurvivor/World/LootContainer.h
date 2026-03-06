@@ -48,7 +48,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnContainerOpened, ALootContainer*
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnContainerClosed, ALootContainer*, Container);
 
 UCLASS()
-class BIOMESURVIOR_API ALootContainer : public AActor, public IInteractableInterface
+class BIOMESURVIVOR_API ALootContainer : public AActor, public IInteractableInterface
 {
     GENERATED_BODY()
 

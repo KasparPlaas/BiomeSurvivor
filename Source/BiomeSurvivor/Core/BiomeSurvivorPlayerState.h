@@ -16,7 +16,7 @@
  * - Kill/death stats
  */
 UCLASS(Blueprintable)
-class BIOMESURVIOR_API ABiomeSurvivorPlayerState : public APlayerState
+class BIOMESURVIVOR_API ABiomeSurvivorPlayerState : public APlayerState
 {
 	GENERATED_BODY()
 

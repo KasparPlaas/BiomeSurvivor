@@ -30,7 +30,8 @@ bool ABiomeZone::IsLocationInZone(const FVector& Location) const
 	if (!ZoneVolume) return false;
 
 	FVector ClosestPoint;
-	float DistSq = ZoneVolume->GetSquaredDistanceToCollision(Location, ClosestPoint);
+	float DistSq = 0.0f;
+	ZoneVolume->GetSquaredDistanceToCollision(Location, DistSq, ClosestPoint);
 	return DistSq <= 0.0f; // 0 means point is inside
 }
 

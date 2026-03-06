@@ -25,7 +25,7 @@ enum class EServerMode : uint8
 };
 
 UCLASS(Blueprintable)
-class BIOMESURVIOR_API ABiomeSurvivorGameMode : public AGameModeBase
+class BIOMESURVIVOR_API ABiomeSurvivorGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 

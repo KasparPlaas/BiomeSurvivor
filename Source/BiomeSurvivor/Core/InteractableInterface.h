@@ -46,7 +46,7 @@ class UInteractableInterface : public UInterface
     GENERATED_BODY()
 };
 
-class BIOMESURVIOR_API IInteractableInterface
+class BIOMESURVIVOR_API IInteractableInterface
 {
     GENERATED_BODY()
 

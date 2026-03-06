@@ -55,7 +55,7 @@ struct FSnapPoint
 };
 
 UCLASS(BlueprintType, Blueprintable)
-class BIOMESURVIOR_API ABuildingPiece : public AActor
+class BIOMESURVIVOR_API ABuildingPiece : public AActor
 {
 	GENERATED_BODY()
 

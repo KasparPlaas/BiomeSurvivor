@@ -8,6 +8,7 @@
 #include "UI/SurvivorHUD.h"
 #include "World/DayNightCycle.h"
 #include "World/WeatherSystem.h"
+#include "GameFramework/GameSession.h"
 #include "BiomeSurvivor.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
@@ -118,7 +119,10 @@ void ABiomeSurvivorGameMode::KickPlayer(APlayerController* PlayerController, con
 		// TODO: Save player data before kicking
 	}
 
-	GameSession->KickPlayer(PlayerController, FText::FromString(Reason));
+	if (GameSession)
+	{
+		GameSession->KickPlayer(PlayerController, FText::FromString(Reason));
+	}
 }
 
 void ABiomeSurvivorGameMode::SpawnEssentialActors()

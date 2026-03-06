@@ -117,11 +117,11 @@ void UCompassWidget::UpdateMarkers()
             NewWidget.IconWidget = WidgetTree->ConstructWidget<UImage>();
             if (NewWidget.IconWidget)
             {
-                UCanvasPanelSlot* Slot = CompassCanvas->AddChildToCanvas(NewWidget.IconWidget);
-                if (Slot)
+                UCanvasPanelSlot* MarkerSlot = CompassCanvas->AddChildToCanvas(NewWidget.IconWidget);
+                if (MarkerSlot)
                 {
-                    Slot->SetSize(FVector2D(MarkerIconSize, MarkerIconSize));
-                    Slot->SetAlignment(FVector2D(0.5f, 0.5f));
+                    MarkerSlot->SetSize(FVector2D(MarkerIconSize, MarkerIconSize));
+                    MarkerSlot->SetAlignment(FVector2D(0.5f, 0.5f));
                 }
 
                 UTexture2D* Icon = M.MarkerIcon;
@@ -164,10 +164,10 @@ void UCompassWidget::UpdateMarkers()
         // Update position
         if (Existing->IconWidget)
         {
-            UCanvasPanelSlot* Slot = Cast<UCanvasPanelSlot>(Existing->IconWidget->Slot);
-            if (Slot)
+            UCanvasPanelSlot* IconSlot = Cast<UCanvasPanelSlot>(Existing->IconWidget->Slot);
+            if (IconSlot)
             {
-                Slot->SetPosition(FVector2D(ScreenPos, 0.0f));
+                IconSlot->SetPosition(FVector2D(ScreenPos, 0.0f));
             }
 
             // Fade based on distance

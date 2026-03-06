@@ -6,6 +6,10 @@
 #include "Core/InteractableInterface.h"
 #include "HeatSource.generated.h"
 
+class UPointLightComponent;
+class UAudioComponent;
+class UStaticMeshComponent;
+
 UENUM(BlueprintType)
 enum class EHeatSourceType : uint8
 {
@@ -71,7 +75,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnItemCooked, FName, InputItem, FN
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnFuelChanged, float, RemainingFuel);
 
 UCLASS()
-class BIOMESURVIOR_API AHeatSource : public AActor, public IInteractableInterface
+class BIOMESURVIVOR_API AHeatSource : public AActor, public IInteractableInterface
 {
     GENERATED_BODY()
 

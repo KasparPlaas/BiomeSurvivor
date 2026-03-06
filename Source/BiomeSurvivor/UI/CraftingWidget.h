@@ -16,7 +16,7 @@ class UProgressBar;
  * Represents a single craftable recipe entry in the crafting list
  */
 UCLASS(BlueprintType, Blueprintable)
-class BIOMESURVIOR_API UCraftingRecipeEntry : public UUserWidget
+class BIOMESURVIVOR_API UCraftingRecipeEntry : public UUserWidget
 {
 	GENERATED_BODY()
 
@@ -47,7 +47,7 @@ public:
  * Designed for Blueprint subclassing with UMG layout.
  */
 UCLASS(BlueprintType, Blueprintable)
-class BIOMESURVIOR_API UCraftingWidget : public UUserWidget
+class BIOMESURVIVOR_API UCraftingWidget : public UUserWidget
 {
 	GENERATED_BODY()
 

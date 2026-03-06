@@ -27,7 +27,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDamageDealt, AActor*, Target, fl
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCombatStateChanged, ECombatState, NewState);
 
 UCLASS(ClassGroup=(BiomeSurvivor), meta=(BlueprintSpawnableComponent))
-class BIOMESURVIOR_API UCombatComponent : public UActorComponent
+class BIOMESURVIVOR_API UCombatComponent : public UActorComponent
 {
 	GENERATED_BODY()
 

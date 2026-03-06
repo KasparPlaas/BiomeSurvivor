@@ -20,7 +20,7 @@ class USlider;
  * Designed for Blueprint subclassing with full UMG layout.
  */
 UCLASS(BlueprintType, Blueprintable)
-class BIOMESURVIOR_API UMainMenuWidget : public UUserWidget
+class BIOMESURVIVOR_API UMainMenuWidget : public UUserWidget
 {
 	GENERATED_BODY()
 

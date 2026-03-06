@@ -169,7 +169,7 @@ struct FSavedPlayerData
 // ─── Main save game class ───
 
 UCLASS()
-class BIOMESURVIOR_API USaveGameData : public USaveGame
+class BIOMESURVIVOR_API USaveGameData : public USaveGame
 {
     GENERATED_BODY()
 

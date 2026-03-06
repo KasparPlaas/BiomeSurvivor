@@ -36,7 +36,7 @@ struct FAnimalSpawnEntry
 };
 
 UCLASS(BlueprintType, Blueprintable)
-class BIOMESURVIOR_API AAnimalSpawner : public AActor
+class BIOMESURVIVOR_API AAnimalSpawner : public AActor
 {
 	GENERATED_BODY()
 

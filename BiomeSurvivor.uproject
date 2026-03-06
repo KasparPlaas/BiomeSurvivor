@@ -9,10 +9,7 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
-				"Engine",
-				"UMG",
-				"AIModule",
-				"NavigationSystem"
+				"Engine"
 			]
 		}
 	],
@@ -21,11 +18,7 @@
 		{ "Name": "OnlineSubsystem", "Enabled": true },
 		{ "Name": "OnlineSubsystemSteam", "Enabled": false },
 		{ "Name": "OnlineSubsystemUtils", "Enabled": true },
-		{ "Name": "AIModule", "Enabled": true },
-		{ "Name": "NavigationSystem", "Enabled": true },
 		{ "Name": "GameplayAbilities", "Enabled": true },
-		{ "Name": "GameplayTags", "Enabled": true },
-		{ "Name": "GameplayTasks", "Enabled": true },
 		{ "Name": "Niagara", "Enabled": true },
 		{ "Name": "Water", "Enabled": true },
 		{ "Name": "GeometryMode", "Enabled": true },

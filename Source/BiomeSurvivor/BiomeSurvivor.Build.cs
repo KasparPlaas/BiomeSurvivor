@@ -36,7 +36,10 @@ public class BiomeSurvivor : ModuleRules
 			"Networking"
 		});
 
+		// Ensure subdirectory includes resolve from module root
+		PublicIncludePaths.AddRange(new string[] { ModuleDirectory });
+
 		// Enable IWYU (Include What You Use) for faster compilation
-		bEnforceIWYU = true;
+		IWYUSupport = IWYUSupport.Full;
 	}
 }

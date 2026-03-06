@@ -18,7 +18,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnEquipmentChanged, EEquipSlot, Slot, const FItemInstance&, Item);
 
 UCLASS(ClassGroup=(BiomeSurvivor), meta=(BlueprintSpawnableComponent))
-class BIOMESURVIOR_API UEquipmentComponent : public UActorComponent
+class BIOMESURVIVOR_API UEquipmentComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
@@ -85,7 +85,7 @@ public:
 	void ServerUnequipSlot(EEquipSlot Slot);
 
 private:
-	UPROPERTY(Replicated)
+	UPROPERTY()
 	TMap<EEquipSlot, FItemInstance> EquippedItems;
 
 	void RecalculateStats();

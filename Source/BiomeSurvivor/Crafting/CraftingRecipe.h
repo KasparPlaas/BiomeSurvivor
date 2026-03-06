@@ -40,7 +40,7 @@ struct FCraftingIngredient
  * Defines a single crafting recipe with ingredients, output, and requirements.
  */
 UCLASS(BlueprintType)
-class BIOMESURVIOR_API UCraftingRecipe : public UPrimaryDataAsset
+class BIOMESURVIVOR_API UCraftingRecipe : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
 

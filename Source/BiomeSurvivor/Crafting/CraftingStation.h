@@ -14,7 +14,7 @@
  */
 
 UCLASS(BlueprintType, Blueprintable)
-class BIOMESURVIOR_API ACraftingStation : public AActor
+class BIOMESURVIVOR_API ACraftingStation : public AActor
 {
 	GENERATED_BODY()
 

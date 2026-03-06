@@ -79,7 +79,7 @@ struct FBiomeResourceInfo
  * Data asset defining a biome's properties
  */
 UCLASS(BlueprintType)
-class BIOMESURVIOR_API UBiomeDefinition : public UPrimaryDataAsset
+class BIOMESURVIVOR_API UBiomeDefinition : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
 

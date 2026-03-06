@@ -38,7 +38,7 @@ struct FCraftingQueueEntry
 };
 
 UCLASS(ClassGroup=(BiomeSurvivor), meta=(BlueprintSpawnableComponent))
-class BIOMESURVIOR_API UCraftingComponent : public UActorComponent
+class BIOMESURVIVOR_API UCraftingComponent : public UActorComponent
 {
 	GENERATED_BODY()
 

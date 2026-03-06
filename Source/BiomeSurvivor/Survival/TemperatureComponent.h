@@ -14,7 +14,7 @@
  */
 
 UCLASS(ClassGroup=(BiomeSurvivor), meta=(BlueprintSpawnableComponent))
-class BIOMESURVIOR_API UTemperatureComponent : public UActorComponent
+class BIOMESURVIVOR_API UTemperatureComponent : public UActorComponent
 {
 	GENERATED_BODY()
 

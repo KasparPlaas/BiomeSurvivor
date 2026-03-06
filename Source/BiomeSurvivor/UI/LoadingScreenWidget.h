@@ -23,7 +23,7 @@ struct FLoadingTip
 };
 
 UCLASS()
-class BIOMESURVIOR_API ULoadingScreenWidget : public UUserWidget
+class BIOMESURVIVOR_API ULoadingScreenWidget : public UUserWidget
 {
     GENERATED_BODY()
 

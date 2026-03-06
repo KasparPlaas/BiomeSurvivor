@@ -24,7 +24,7 @@ enum class EFoodQuality : uint8
 };
 
 UCLASS(ClassGroup=(BiomeSurvivor), meta=(BlueprintSpawnableComponent))
-class BIOMESURVIOR_API UNutritionComponent : public UActorComponent
+class BIOMESURVIVOR_API UNutritionComponent : public UActorComponent
 {
 	GENERATED_BODY()
 

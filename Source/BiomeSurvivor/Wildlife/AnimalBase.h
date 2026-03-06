@@ -55,7 +55,7 @@ struct FAnimalLootDrop
 };
 
 UCLASS(BlueprintType, Blueprintable)
-class BIOMESURVIOR_API AAnimalBase : public ACharacter
+class BIOMESURVIVOR_API AAnimalBase : public ACharacter
 {
 	GENERATED_BODY()
 

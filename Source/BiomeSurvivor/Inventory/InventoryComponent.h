@@ -18,7 +18,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInventoryChanged, int32, SlotInd
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInventorySlotCleared, int32, SlotIndex);
 
 UCLASS(ClassGroup=(BiomeSurvivor), meta=(BlueprintSpawnableComponent))
-class BIOMESURVIOR_API UInventoryComponent : public UActorComponent
+class BIOMESURVIVOR_API UInventoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
 

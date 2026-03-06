@@ -17,7 +17,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStatChanged, float, NewValue);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStatDepleted);
 
 UCLASS(ClassGroup=(BiomeSurvivor), meta=(BlueprintSpawnableComponent))
-class BIOMESURVIOR_API UPlayerStatsComponent : public UActorComponent
+class BIOMESURVIVOR_API UPlayerStatsComponent : public UActorComponent
 {
 	GENERATED_BODY()
 

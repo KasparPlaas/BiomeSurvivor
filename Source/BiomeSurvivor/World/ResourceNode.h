@@ -60,7 +60,7 @@ struct FResourceYield
  * Supports respawning after depletion.
  */
 UCLASS(BlueprintType, Blueprintable)
-class BIOMESURVIOR_API AResourceNode : public AActor
+class BIOMESURVIVOR_API AResourceNode : public AActor
 {
 	GENERATED_BODY()
 

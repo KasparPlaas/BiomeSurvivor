@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "UI/InventorySlotWidget.h"
+#include "Inventory/ItemDefinition.h"
 #include "InventoryWidget.generated.h"
 
 class UInventoryComponent;
@@ -11,48 +13,6 @@ class UEquipmentComponent;
 class UUniformGridPanel;
 class UImage;
 class UTextBlock;
-
-/**
- * Represents a single item slot in the inventory grid
- */
-UCLASS(BlueprintType, Blueprintable)
-class BIOMESURVIOR_API UInventorySlotWidget : public UUserWidget
-{
-	GENERATED_BODY()
-
-public:
-	/** The inventory slot index this widget represents */
-	UPROPERTY(BlueprintReadWrite, Category = "Slot")
-	int32 SlotIndex = -1;
-
-	/** Whether this is a quickbar slot */
-	UPROPERTY(BlueprintReadWrite, Category = "Slot")
-	bool bIsQuickbarSlot = false;
-
-	/** Whether this is an equipment slot */
-	UPROPERTY(BlueprintReadWrite, Category = "Slot")
-	bool bIsEquipmentSlot = false;
-
-	/** Equipment slot type (if applicable) */
-	UPROPERTY(BlueprintReadWrite, Category = "Slot")
-	uint8 EquipSlotType = 0;
-
-	/** Update the slot visual display */
-	UFUNCTION(BlueprintImplementableEvent, Category = "Slot")
-	void RefreshSlot();
-
-	/** Set highlight state (for drag/drop targeting) */
-	UFUNCTION(BlueprintImplementableEvent, Category = "Slot")
-	void SetHighlighted(bool bHighlight);
-
-	/** Get whether the slot contains an item */
-	UFUNCTION(BlueprintCallable, Category = "Slot")
-	bool HasItem() const { return bHasItem; }
-
-protected:
-	UPROPERTY(BlueprintReadWrite, Category = "Slot")
-	bool bHasItem = false;
-};
 
 /**
  * Main inventory widget showing:
@@ -65,7 +25,7 @@ protected:
  * Designed for Blueprint subclassing with UMG layout.
  */
 UCLASS(BlueprintType, Blueprintable)
-class BIOMESURVIOR_API UInventoryWidget : public UUserWidget
+class BIOMESURVIVOR_API UInventoryWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
@@ -130,4 +90,8 @@ protected:
 
 private:
 	int32 DragSourceSlot = -1;
+
+	/** Delegate handler – signature matches FOnInventoryChanged(int32, FItemInstance) */
+	UFUNCTION()
+	void OnInventorySlotChanged(int32 SlotIndex, const FItemInstance& Item);
 };

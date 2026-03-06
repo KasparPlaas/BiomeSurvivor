@@ -16,7 +16,7 @@ class UInputAction;
  * Uses Enhanced Input System for all player input.
  */
 UCLASS(Blueprintable)
-class BIOMESURVIOR_API ABiomeSurvivorPlayerController : public APlayerController
+class BIOMESURVIVOR_API ABiomeSurvivorPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 

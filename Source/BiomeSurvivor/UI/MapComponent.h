@@ -12,7 +12,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMarkerUpdated, const FMapMarkerDa
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRegionExplored, const FExploredRegion&, Region);
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
-class BIOMESURVIOR_API UMapComponent : public UActorComponent
+class BIOMESURVIVOR_API UMapComponent : public UActorComponent
 {
     GENERATED_BODY()
 

@@ -159,12 +159,7 @@ void AResourceNode::GiveYields(AActor* Harvester, const TArray<FResourceYield>& 
 		}
 
 		// Create item instance and add to inventory
-		FItemInstance NewItem;
-		NewItem.ItemID = Yield.ItemID;
-		NewItem.StackCount = Quantity;
-		NewItem.InstanceID = FGuid::NewGuid();
-
-		Inventory->AddItem(NewItem);
+		Inventory->AddItem(Yield.ItemID, Quantity);
 
 		UE_LOG(LogBiomeSurvivor, Verbose, TEXT("Yielded %d x %s to player"),
 			Quantity, *Yield.ItemID.ToString());

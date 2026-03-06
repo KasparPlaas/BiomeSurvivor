@@ -28,7 +28,7 @@ enum class EWeaponType : uint8
 };
 
 UCLASS(BlueprintType, Blueprintable)
-class BIOMESURVIOR_API AWeaponBase : public AActor
+class BIOMESURVIVOR_API AWeaponBase : public AActor
 {
 	GENERATED_BODY()
 

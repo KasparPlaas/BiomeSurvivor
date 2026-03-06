@@ -65,7 +65,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnStatusEffectChanged, EStatusEffe
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStatusEffectRemoved, EStatusEffectType, Type);
 
 UCLASS(ClassGroup=(BiomeSurvivor), meta=(BlueprintSpawnableComponent))
-class BIOMESURVIOR_API UStatusEffectComponent : public UActorComponent
+class BIOMESURVIVOR_API UStatusEffectComponent : public UActorComponent
 {
 	GENERATED_BODY()
 

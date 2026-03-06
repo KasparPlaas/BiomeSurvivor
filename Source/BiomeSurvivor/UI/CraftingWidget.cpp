@@ -27,7 +27,7 @@ void UCraftingWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 		{
 			if (Entry && Entry->Recipe)
 			{
-				bool bCanCraft = CraftingComp->CanCraft(Entry->Recipe);
+				bool bCanCraft = CraftingComp->CanCraft(Entry->Recipe->RecipeID);
 				Entry->UpdateCraftability(bCanCraft);
 			}
 		}
@@ -49,11 +49,12 @@ void UCraftingWidget::RefreshRecipeList()
 	// Clear existing entries
 	RecipeEntries.Empty();
 
-	// Get discovered recipes from crafting component
-	const TArray<UCraftingRecipe*>& Discovered = CraftingComp->GetDiscoveredRecipes();
+	// Get known recipes and resolve to definitions
+	const TArray<FName> KnownRecipeIDs = CraftingComp->GetKnownRecipes();
 
-	for (UCraftingRecipe* Recipe : Discovered)
+	for (const FName& RID : KnownRecipeIDs)
 	{
+		const UCraftingRecipe* Recipe = UCraftingComponent::GetRecipeDefinition(RID);
 		if (!Recipe) continue;
 
 		// Apply category filter
@@ -69,7 +70,7 @@ void UCraftingWidget::RefreshRecipeList()
 			UCraftingRecipeEntry* Entry = CreateWidget<UCraftingRecipeEntry>(this, RecipeEntryClass);
 			if (Entry)
 			{
-				Entry->SetRecipe(Recipe);
+				Entry->SetRecipe(const_cast<UCraftingRecipe*>(Recipe));
 				RecipeEntries.Add(Entry);
 			}
 		}
@@ -94,14 +95,14 @@ void UCraftingWidget::CraftSelected()
 {
 	if (!CraftingComp || !SelectedRecipe) return;
 
-	CraftingComp->StartCrafting(SelectedRecipe);
+	CraftingComp->StartCrafting(SelectedRecipe->RecipeID);
 }
 
 void UCraftingWidget::CancelQueueItem(int32 QueueIndex)
 {
 	if (!CraftingComp) return;
 
-	CraftingComp->CancelCrafting(QueueIndex);
+	CraftingComp->CancelQueueEntry(QueueIndex);
 }
 
 void UCraftingWidget::SetCategoryFilter(uint8 Category)
@@ -113,7 +114,8 @@ void UCraftingWidget::SetCategoryFilter(uint8 Category)
 float UCraftingWidget::GetCurrentCraftingProgress() const
 {
 	if (!CraftingComp) return 0.0f;
-	return CraftingComp->GetCraftingProgress();
+	const TArray<FCraftingQueueEntry>& Queue = CraftingComp->GetCraftingQueue();
+	return Queue.Num() > 0 ? Queue[0].GetProgress() : 0.0f;
 }
 
 FText UCraftingWidget::GetCraftingTimeText() const
@@ -134,5 +136,5 @@ FText UCraftingWidget::GetCraftingTimeText() const
 int32 UCraftingWidget::GetQueueCount() const
 {
 	if (!CraftingComp) return 0;
-	return CraftingComp->GetQueueCount();
+	return CraftingComp->GetCraftingQueue().Num();
 }

@@ -13,7 +13,7 @@
  */
 
 UCLASS()
-class BIOMESURVIOR_API AAnimalAIController : public AAIController
+class BIOMESURVIVOR_API AAnimalAIController : public AAIController
 {
 	GENERATED_BODY()
 
